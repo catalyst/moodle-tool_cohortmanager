@@ -1,8 +1,16 @@
+![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/catalyst/moodle-tool_cohortmanager/ci/MOODLE_39_STABLE)
+
 # Cohort manager #
 
 TODO Describe the plugin shortly here.
 
 TODO Provide more detailed description here.
+
+## Versions and branches ##
+
+| Moodle Version    |  Branch                | 
+|-------------------|------------------------|
+| Moodle 3.9+       | MOODLE_39_STABLE       | 
 
 ## Installing via uploaded ZIP file ##
 
