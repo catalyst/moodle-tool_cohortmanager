@@ -49,6 +49,7 @@ class match extends persistent {
             ],
             'unmatchedtime' => [
                 'type' => PARAM_INT,
+                'default' => 0,
             ],
             'status' => [
                 'type' => PARAM_INT,
