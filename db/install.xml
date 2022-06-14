@@ -9,7 +9,6 @@
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="name" TYPE="char" LENGTH="500" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="enabled" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
-        <FIELD NAME="archived" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="cohortid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="usermodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
@@ -21,7 +20,7 @@
         <KEY NAME="cohortcohortid" TYPE="foreign" FIELDS="cohortid" REFTABLE="cohort" REFFIELDS="id"/>
       </KEYS>
       <INDEXES>
-        <INDEX NAME="enabledarchived" UNIQUE="false" FIELDS="enabled, archived"/>
+        <INDEX NAME="enabled" UNIQUE="false" FIELDS="enabled"/>
       </INDEXES>
     </TABLE>
     <TABLE NAME="tool_cohortmanager_cond" COMMENT="A list of configured conditions for each rule.">

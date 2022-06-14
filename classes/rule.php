@@ -45,10 +45,6 @@ class rule extends persistent {
                 'type' => PARAM_INT,
                 'default' => 0,
             ],
-            'archived' => [
-                'type' => PARAM_INT,
-                'default' => 0,
-            ],
             'cohortid' => [
                 'type' => PARAM_INT,
                 'default' => 0,
@@ -63,15 +59,6 @@ class rule extends persistent {
      */
     public function is_enabled() : bool {
         return (bool)$this->get('enabled');
-    }
-
-    /**
-     * Return if the rule is archived.
-     *
-     * @return bool
-     */
-    public function is_archived() : bool {
-        return (bool)$this->get('archived');
     }
 
     /**
