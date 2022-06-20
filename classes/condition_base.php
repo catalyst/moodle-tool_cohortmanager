@@ -49,12 +49,17 @@ abstract class condition_base {
     final public static function get_instance(int $id = 0, ?\stdClass $record = null):? condition_base {
         $condition = new condition($id, $record);
 
-        $class = $condition->get('classname');
-        if (!class_exists($class) || !is_subclass_of($class, self::class)) {
+        // In case we are getting the instance without underlying persistent data.
+        if (!$classname = $condition->get('classname')) {
+            $classname = get_called_class();
+            $condition->set('classname', $classname);
+        }
+
+        if (!class_exists($classname) || !is_subclass_of($classname, self::class)) {
             return null;
         }
 
-        $instance = new $class();
+        $instance = new $classname();
         $instance->condition = $condition;
         return $instance;
     }
