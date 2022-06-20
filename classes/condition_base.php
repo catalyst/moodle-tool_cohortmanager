@@ -87,4 +87,11 @@ abstract class condition_base {
      */
     abstract public function config_form_validate(array $data): array;
 
+    /**
+     * Returns elements to extend SQL for searching users.
+     *
+     * @return sql_data
+     */
+    abstract public function get_sql_data(): sql_data;
+
 }
