@@ -23,7 +23,10 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use core\notification;
 use tool_cohortmanager\rule_form;
+use tool_cohortmanager\rule;
+use tool_cohortmanager\helper;
 
 require_once(__DIR__.'/../../../config.php');
 require_once($CFG->libdir.'/adminlib.php');
@@ -38,6 +41,27 @@ $editurl = new moodle_url('/admin/tool/cohortmanager/edit.php');
 $PAGE->navbar->add(get_string($action . '_breadcrumb', 'tool_cohortmanager'));
 
 $mform = new rule_form();
+
+if (!empty($ruleid)) {
+    $rule = rule::get_record(['id' => $ruleid]);
+    if (empty($rule)) {
+        throw new dml_missing_record_exception(null);
+    } else {
+        $mform->set_data($rule->to_record());
+    }
+}
+
+if ($mform->is_cancelled()) {
+    redirect($manageurl);
+} else if ($formdata = $mform->get_data()) {
+    try {
+        helper::process_rule_form($formdata);
+        notification::success(get_string('changessaved'));
+    } catch (Exception $e) {
+        notification::error($e->getMessage());
+    }
+    redirect($manageurl);
+}
 
 echo $OUTPUT->header();
 $mform->display();

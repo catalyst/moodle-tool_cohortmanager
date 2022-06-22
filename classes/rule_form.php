@@ -56,7 +56,7 @@ class rule_form extends \moodleform {
             'cohortid',
             get_string('cohortid', 'tool_cohortmanager'),
             array_merge(
-                [0 => get_string('choosedots')],
+                ['' => get_string('choosedots')],
                 $this->get_cohort_options()
             ),
             ['noselectionstring' => get_string('choosedots')]
