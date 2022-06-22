@@ -85,10 +85,12 @@ class helper {
      * @return bool
      */
     protected static function is_valid_rule_data(\stdClass $formdata): bool {
-        // Exclude rule fields that are not expected to be in the form.
-        $requiredfields = array_keys(array_filter(rule::properties_definition(), function($k) {
-            return !in_array($k, ['id', 'usermodified', 'timecreated', 'timemodified']);
-        }, ARRAY_FILTER_USE_KEY));
+        // Go through all rule persistent fields excluding system fields to make sure
+        // we get only required fields to check form data against.
+        $requiredfields = array_diff(
+            array_keys(rule::properties_definition()),
+            ['id', 'usermodified', 'timecreated', 'timemodified']
+        );
 
         foreach ($requiredfields as $field) {
             if (!isset($formdata->{$field})) {
