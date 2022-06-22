@@ -14,30 +14,38 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+namespace tool_cohortmanager\output;
+
+use core\output\inplace_editable;
+use tool_cohortmanager\helper;
+use tool_cohortmanager\rule;
+use html_writer;
+
 /**
- * Rules manage page.
+ * In place editable for rule name.
  *
  * @package    tool_cohortmanager
  * @author     Dmitrii Metelkin <dmitriim@catalyst-au.net>
  * @copyright  2022 Catalyst IT
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+class inplace_editable_rule_name extends inplace_editable {
 
-use tool_cohortmanager\local\table\managerules;
-use tool_cohortmanager\helper;
+    /**
+     * inplace_editable_rule_name constructor.
+     *
+     * @param \tool_cohortmanager\rule $rule
+     */
+    public function __construct(rule $rule) {
+        parent::__construct(
+            'tool_cohortmanager',
+            'rulename',
+            $rule->get('id'),
+            true,
+            html_writer::link(helper::build_rule_edit_url($rule), $rule->get('name')),
+            $rule->get('name'),
+            $rule->get('name')
+        );
+    }
 
-require_once(__DIR__.'/../../../config.php');
-require_once($CFG->libdir.'/adminlib.php');
-
-admin_externalpage_setup('tool_cohortmanager_managerules');
-
-$manageurl = new moodle_url('/admin/tool/cohortmanager/index.php');
-$editurl = new moodle_url('/admin/tool/cohortmanager/edit.php');
-$rulestable = new managerules('tool_cohortmanager_rules', $manageurl);
-$renderer = helper::get_renderer();
-
-echo $renderer->header();
-echo $renderer->heading(get_string('managerules', 'tool_cohortmanager'));
-echo $renderer->render_from_template('tool_cohortmanager/addrulebutton', ['url' => $editurl]);
-echo $renderer->render($rulestable);
-echo $renderer->footer();
+}

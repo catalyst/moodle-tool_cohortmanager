@@ -20,7 +20,6 @@ defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
 require_once($CFG->libdir . '/formslib.php');
-require_once($CFG->dirroot.'/cohort/lib.php');
 
 /**
  * A form for adding/editing rules.
@@ -91,14 +90,7 @@ class rule_form extends \moodleform {
      * @return array
      */
     protected function get_cohort_options(): array {
-        $options = ['' => get_string('choosedots')];
-
-        $cohorts = \cohort_get_all_cohorts(0, 0);
-        foreach ($cohorts['cohorts'] as $cohort) {
-            $options[$cohort->id] = $cohort->name;
-        }
-
-        return $options;
+        return ['' => get_string('choosedots')] + helper::get_all_cohorts();
     }
 
 }
