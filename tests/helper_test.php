@@ -41,4 +41,103 @@ class helper_test extends \advanced_testcase {
         }
     }
 
+    /**
+     * Data provider for testing test_process_rule_form_with_invalid_data.
+     *
+     * @return array
+     */
+    public function process_rule_form_with_invalid_data_provider(): array {
+        return [
+            [[]],
+            [['name' => 'Test']],
+            [['enabled' => 1]],
+            [['cohortid' => 1]],
+            [['description' => '']],
+            [['enabled' => 1, 'cohortid' => 1, 'description' => '']],
+            [['name' => 'Test', 'cohortid' => 1, 'description' => '']],
+            [['name' => 'Test', 'enabled' => 1, 'description' => '']],
+            [['name' => 'Test', 'enabled' => 1, 'cohortid' => 1]],
+        ];
+    }
+
+    /**
+     * Test processing rules with invalid data.
+     *
+     * @dataProvider process_rule_form_with_invalid_data_provider
+     * @param array $formdata Broken form data
+     */
+    public function test_process_rule_form_with_invalid_data(array $formdata) {
+        $this->expectException(\moodle_exception::class);
+        $this->expectExceptionMessage('Invalid rule data');
+
+        helper::process_rule_form((object)$formdata);
+    }
+
+    /**
+     * Test new rules are created when processing form data.
+     */
+    public function test_process_rule_form_new_rule() {
+        global $DB;
+
+        $this->resetAfterTest();
+        $this->assertEquals(0, $DB->count_records(rule::TABLE));
+
+        $formdata = ['name' => 'Test', 'enabled' => 1, 'cohortid' => 1, 'description' => ''];
+
+        $id = helper::process_rule_form((object)$formdata);
+        $this->assertEquals(1, $DB->count_records(rule::TABLE));
+
+        $rule = rule::get_record(['id' => $id]);
+        foreach ($formdata as $field => $value) {
+            $this->assertEquals($value, $rule->get($field));
+        }
+
+        $formdata = ['name' => 'Test', 'enabled' => 1, 'cohortid' => 1, 'description' => ''];
+        $id = helper::process_rule_form((object)$formdata);
+        $this->assertEquals(2, $DB->count_records(rule::TABLE));
+
+        $rule = rule::get_record(['id' => $id]);
+        foreach ($formdata as $field => $value) {
+            $this->assertEquals($value, $rule->get($field));
+        }
+
+        $formdata = ['name' => 'Test1', 'enabled' => 1, 'cohortid' => 2, 'description' => ''];
+        $id = helper::process_rule_form((object)$formdata);
+        $this->assertEquals(3, $DB->count_records(rule::TABLE));
+
+        $rule = rule::get_record(['id' => $id]);
+        foreach ($formdata as $field => $value) {
+            $this->assertEquals($value, $rule->get($field));
+        }
+
+    }
+
+    /**
+     * Test existing rules are updated when processing form data.
+     */
+    public function test_process_rule_form_existing_rule() {
+        global $DB;
+
+        $this->resetAfterTest();
+        $this->assertEquals(0, $DB->count_records(rule::TABLE));
+
+        $formdata = ['name' => 'Test', 'enabled' => 1, 'cohortid' => 1, 'description' => ''];
+        $rule = new rule(0, (object)$formdata);
+        $rule->create();
+
+        $this->assertEquals(1, $DB->count_records(rule::TABLE));
+        foreach ($formdata as $field => $value) {
+            $this->assertEquals($value, $rule->get($field));
+        }
+
+        $formdata = ['id' => $rule->get('id'), 'name' => 'Test1', 'enabled' => 0, 'cohortid' => 2, 'description' => 'Desc'];
+        $id = helper::process_rule_form((object)$formdata);
+        $this->assertEquals(1, $DB->count_records(rule::TABLE));
+
+        $rule = rule::get_record(['id' => $id]);
+        foreach ($formdata as $field => $value) {
+            $this->assertEquals($value, $rule->get($field));
+        }
+    }
+
 }

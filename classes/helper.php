@@ -16,6 +16,8 @@
 
 namespace tool_cohortmanager;
 
+use moodle_exception;
+
 /**
  * Helper class.
  *
@@ -43,6 +45,60 @@ class helper {
         }
 
         return $instances;
+    }
+
+    /**
+     * A helper method for processing rule form data.
+     *
+     * @param \stdClass $formdata Data received from rule_form.
+     * @return int Rule record ID.
+     */
+    public static function process_rule_form(\stdClass $formdata): int {
+
+        if (!self::is_valid_rule_data($formdata)) {
+            throw new moodle_exception('Invalid rule data');
+        }
+
+        $ruledata = (object) [
+            'name' => $formdata->name,
+            'enabled' => $formdata->enabled,
+            'cohortid' => $formdata->cohortid,
+            'description' => $formdata->description,
+        ];
+
+        if (empty($formdata->id)) {
+            $rule = new rule(0, $ruledata);
+            $rule->create();
+        } else {
+            $rule = new rule($formdata->id);
+            $rule->from_record($ruledata);
+            $rule->update();
+        }
+
+        return $rule->get('id');
+    }
+
+    /**
+     * Validate submitted rule data.
+     *
+     * @param \stdClass $formdata Data received from rule_form.
+     * @return bool
+     */
+    protected static function is_valid_rule_data(\stdClass $formdata): bool {
+        // Go through all rule persistent fields excluding system fields to make sure
+        // we get only required fields to check form data against.
+        $requiredfields = array_diff(
+            array_keys(rule::properties_definition()),
+            ['id', 'usermodified', 'timecreated', 'timemodified']
+        );
+
+        foreach ($requiredfields as $field) {
+            if (!isset($formdata->{$field})) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
 }

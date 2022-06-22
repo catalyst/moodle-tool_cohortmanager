@@ -55,10 +55,7 @@ class rule_form extends \moodleform {
             'autocomplete',
             'cohortid',
             get_string('cohortid', 'tool_cohortmanager'),
-            array_merge(
-                [0 => get_string('choosedots')],
-                $this->get_cohort_options()
-            ),
+            $this->get_cohort_options(),
             ['noselectionstring' => get_string('choosedots')]
         );
         $mform->addHelpButton('cohortid', 'cohortid', 'tool_cohortmanager');
@@ -94,7 +91,7 @@ class rule_form extends \moodleform {
      * @return array
      */
     protected function get_cohort_options(): array {
-        $options  = [];
+        $options = ['' => get_string('choosedots')];
 
         $cohorts = \cohort_get_all_cohorts(0, 0);
         foreach ($cohorts['cohorts'] as $cohort) {
