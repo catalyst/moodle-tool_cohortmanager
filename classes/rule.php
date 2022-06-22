@@ -51,6 +51,8 @@ class rule extends persistent {
             ],
             'description' => [
                 'type' => PARAM_TEXT,
+                'default' => null,
+                'null' => NULL_ALLOWED,
             ],
         ];
     }
