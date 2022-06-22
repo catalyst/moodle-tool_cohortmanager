@@ -47,6 +47,10 @@ class rule_form extends \moodleform {
         $mform->addRule('name', get_string('required'), 'required');
         $mform->addHelpButton('name', 'name', 'tool_cohortmanager');
 
+        $mform->addElement('textarea', 'description', get_string('description', 'tool_cohortmanager'), ['rows' => 5, 'cols' => 50]);
+        $mform->addHelpButton('description', 'description', 'tool_cohortmanager');
+        $mform->setType('description', PARAM_TEXT);
+
         $mform->addElement(
             'autocomplete',
             'cohortid',

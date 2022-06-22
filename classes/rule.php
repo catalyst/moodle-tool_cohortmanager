@@ -49,6 +49,9 @@ class rule extends persistent {
                 'type' => PARAM_INT,
                 'default' => 0,
             ],
+            'description' => [
+                'type' => PARAM_TEXT,
+            ],
         ];
     }
 
