@@ -25,9 +25,16 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$string['addrule'] = 'Add new rule';
+$string['addrule'] = 'Add a new rule';
+$string['addcondition'] = 'Add a condition';
+$string['add_breadcrumb'] = 'Add new rule';
 $string['cohortmanager:managerules'] = 'Manage rules';
+$string['cohortid'] = 'Cohort';
+$string['cohortid_help'] = 'A cohort to manage as part of this rule.';
+$string['edit_breadcrumb'] = 'Edit rule';
 $string['managerules'] = 'Manage dynamic cohort rules';
+$string['name'] = 'Rule name';
+$string['name_help'] = 'A human readable name of this rule.';
 $string['pluginname'] = 'Cohort manager';
 $string['privacy:metadata:tool_cohortmanager'] = 'Information about cohort rules created or updated by a user';
 $string['privacy:metadata:tool_cohortmanager:name'] = 'Rule name';
@@ -41,3 +48,4 @@ $string['privacy:metadata:tool_cohortmanager_match:matchedtime'] = 'Timestamp wh
 $string['privacy:metadata:tool_cohortmanager_match:unmatchedtime'] = 'Timestamp indicating a user unmatched rule condition.';
 $string['privacy:metadata:tool_cohortmanager_match:userid'] = 'The ID of the user.';
 $string['privacy:metadata:tool_cohortmanager_match:usermodified'] = 'The ID of the user applied matching.';
+$string['rulemname'] = 'Rule name';
