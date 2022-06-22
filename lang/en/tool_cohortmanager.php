@@ -52,4 +52,3 @@ $string['privacy:metadata:tool_cohortmanager_match:matchedtime'] = 'Timestamp wh
 $string['privacy:metadata:tool_cohortmanager_match:unmatchedtime'] = 'Timestamp indicating a user unmatched rule condition.';
 $string['privacy:metadata:tool_cohortmanager_match:userid'] = 'The ID of the user.';
 $string['privacy:metadata:tool_cohortmanager_match:usermodified'] = 'The ID of the user applied matching.';
-$string['rulemname'] = 'Rule name';
