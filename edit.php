@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Rules main page.
+ * Rules edit page.
  *
  * @package    tool_cohortmanager
  * @author     Dmitrii Metelkin <dmitriim@catalyst-au.net>
@@ -23,14 +23,22 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use tool_cohortmanager\rule_form;
+
 require_once(__DIR__.'/../../../config.php');
 require_once($CFG->libdir.'/adminlib.php');
 
+$ruleid = optional_param('ruleid', 0, PARAM_INT);
+$action = !empty($ruleid) ? 'edit' : 'add';
+
 admin_externalpage_setup('tool_cohortmanager_managerules');
 
+$manageurl = new moodle_url('/admin/tool/cohortmanager/index.php');
 $editurl = new moodle_url('/admin/tool/cohortmanager/edit.php');
+$PAGE->navbar->add(get_string($action . '_breadcrumb', 'tool_cohortmanager'));
+
+$mform = new rule_form();
 
 echo $OUTPUT->header();
-echo $OUTPUT->heading(get_string('managerules', 'tool_cohortmanager'));
-echo $OUTPUT->render_from_template('tool_cohortmanager/addrulebutton', ['url' => $editurl]);
+$mform->display();
 echo $OUTPUT->footer();

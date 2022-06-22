@@ -25,9 +25,20 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$string['addrule'] = 'Add new rule';
+$string['addrule'] = 'Add a new rule';
+$string['addcondition'] = 'Add a condition';
+$string['add_breadcrumb'] = 'Add new rule';
 $string['cohortmanager:managerules'] = 'Manage rules';
+$string['cohortid'] = 'Cohort';
+$string['cohortid_help'] = 'A cohort to manage as part of this rule.';
+$string['description'] = 'Description';
+$string['description_help'] = 'As short description of this rule';
+$string['edit_breadcrumb'] = 'Edit rule';
+$string['enabled'] = 'Rule enabled';
+$string['enabled_help'] = 'Only enabled rules will be processed';
 $string['managerules'] = 'Manage dynamic cohort rules';
+$string['name'] = 'Rule name';
+$string['name_help'] = 'A human readable name of this rule.';
 $string['pluginname'] = 'Cohort manager';
 $string['privacy:metadata:tool_cohortmanager'] = 'Information about cohort rules created or updated by a user';
 $string['privacy:metadata:tool_cohortmanager:name'] = 'Rule name';
