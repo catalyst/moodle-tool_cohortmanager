@@ -26,10 +26,15 @@
 defined('MOODLE_INTERNAL') || die();
 
 if ($hassiteconfig) {
-    $settings = new admin_settingpage('tool_cohortmanager_settings', new lang_string('pluginname', 'tool_cohortmanager'));
 
-    // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedIf
-    if ($ADMIN->fulltree) {
-        // TODO: Define actual plugin settings page and add it to the tree - {@link https://docs.moodle.org/dev/Admin_settings}.
-    }
+    $ADMIN->add('tools', new admin_category(
+        'tool_cohortmanager',
+        get_string('pluginname', 'tool_cohortmanager')
+    ));
+
+    $ADMIN->add('tool_cohortmanager', new admin_externalpage(
+        'tool_cohortmanager_managerules',
+        get_string('managerules', 'tool_cohortmanager'),
+        new moodle_url('/admin/tool/cohortmanager/index.php')
+    ));
 }

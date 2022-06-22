@@ -25,7 +25,9 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+$string['addrule'] = 'Add new rule';
 $string['cohortmanager:managerules'] = 'Manage rules';
+$string['managerules'] = 'Manage dynamic cohort rules';
 $string['pluginname'] = 'Cohort manager';
 $string['privacy:metadata:tool_cohortmanager'] = 'Information about cohort rules created or updated by a user';
 $string['privacy:metadata:tool_cohortmanager:name'] = 'Rule name';
