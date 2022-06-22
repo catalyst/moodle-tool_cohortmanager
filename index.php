@@ -28,7 +28,7 @@ require_once($CFG->libdir.'/adminlib.php');
 
 admin_externalpage_setup('tool_cohortmanager_managerules');
 
-$editurl = new \moodle_url($CFG->wwwroot. '/admin/tool/cohortmanager/edit.php');
+$editurl = new moodle_url('/admin/tool/cohortmanager/edit.php');
 
 echo $OUTPUT->header();
 echo $OUTPUT->heading(get_string('managerules', 'tool_cohortmanager'));
