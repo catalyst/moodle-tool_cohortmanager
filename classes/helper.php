@@ -57,13 +57,10 @@ class helper {
      * A helper method for processing rule form data.
      *
      * @param \stdClass $formdata Data received from rule_form.
-     * @return int Rule record ID.
+     * @return rule Rule instance.
      */
-    public static function process_rule_form(\stdClass $formdata): int {
-
-        if (!self::is_valid_rule_data($formdata)) {
-            throw new moodle_exception('Invalid rule data');
-        }
+    public static function process_rule_form(\stdClass $formdata): rule {
+        self::validate_rule_data($formdata);
 
         $ruledata = (object) [
             'name' => $formdata->name,
@@ -72,25 +69,30 @@ class helper {
             'description' => $formdata->description,
         ];
 
+        $oldcohortid = 0;
+
         if (empty($formdata->id)) {
             $rule = new rule(0, $ruledata);
             $rule->create();
         } else {
             $rule = new rule($formdata->id);
+            $oldcohortid = $rule->get('cohortid');
             $rule->from_record($ruledata);
             $rule->update();
         }
 
-        return $rule->get('id');
+        self::release_cohort($oldcohortid);
+        self::reserve_cohort($formdata->cohortid);
+
+        return $rule;
     }
 
     /**
      * Validate submitted rule data.
      *
      * @param \stdClass $formdata Data received from rule_form.
-     * @return bool
      */
-    protected static function is_valid_rule_data(\stdClass $formdata): bool {
+    protected static function validate_rule_data(\stdClass $formdata): void {
         // Go through all rule persistent fields excluding system fields to make sure
         // we get only required fields to check form data against.
         $requiredfields = array_diff(
@@ -100,11 +102,59 @@ class helper {
 
         foreach ($requiredfields as $field) {
             if (!isset($formdata->{$field})) {
-                return false;
+                throw new moodle_exception('Invalid rule data. Missing field: ' . $field);
             }
         }
 
-        return true;
+        if (!key_exists($formdata->cohortid, self::get_all_cohorts())) {
+            throw new moodle_exception('Invalid rule data. Cohort is not exist: ' . $formdata->cohortid);
+        }
+    }
+
+    /**
+     * Delete rule.
+     *
+     * @param \tool_cohortmanager\rule $rule
+     */
+    public static function delete_rule(rule $rule) {
+        global $DB;
+
+        $oldid = $rule->get('id');
+
+        if ($rule->delete()) {
+            $DB->delete_records(condition::TABLE, ['ruleid' => $oldid]);
+            $DB->delete_records(match::TABLE, ['ruleid' => $oldid]);
+            self::release_cohort($rule->get('cohortid'));
+        }
+    }
+
+    /**
+     * Release cohort from being managed by tool_cohortmanager.
+     *
+     * @param int $cohortid Cohort ID.
+     */
+    public static function release_cohort(int $cohortid): void {
+        $cohorts = self::get_all_cohorts();
+
+        if (!empty($cohorts[$cohortid]) && !rule::record_exists_select('cohortid = ?', [$cohortid])) {
+            $cohort = $cohorts[$cohortid];
+            $cohort->component = '';
+            cohort_update_cohort($cohort);
+        }
+    }
+
+    /**
+     * Reserve cohort to be managed by tool_cohortmanager.
+     *
+     * @param int $cohortid Cohort ID.
+     */
+    public static function reserve_cohort(int $cohortid): void {
+        $cohorts = self::get_all_cohorts();
+        if (!empty($cohorts[$cohortid])) {
+            $cohort = $cohorts[$cohortid];
+            $cohort->component = 'tool_cohortmanager';
+            cohort_update_cohort($cohort);
+        }
     }
 
     /**
@@ -115,7 +165,7 @@ class helper {
     public static function get_all_cohorts(): array {
         $cohorts = [];
         foreach (\cohort_get_all_cohorts(0, 0)['cohorts'] as $cohort) {
-            $cohorts[$cohort->id] = $cohort->name;
+            $cohorts[$cohort->id] = $cohort;
         }
 
         return $cohorts;

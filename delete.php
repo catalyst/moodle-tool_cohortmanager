@@ -24,6 +24,7 @@
  */
 
 use tool_cohortmanager\rule;
+use tool_cohortmanager\helper;
 
 require_once(__DIR__.'/../../../config.php');
 require_once($CFG->libdir.'/adminlib.php');
@@ -53,6 +54,6 @@ if ($confirm != md5($ruleid)) {
     echo $OUTPUT->footer();
 
 } else if (data_submitted() and confirm_sesskey()) {
-    $rule->delete();
+    helper::delete_rule($rule);
     redirect($manageurl);
 }
