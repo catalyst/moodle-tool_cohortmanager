@@ -86,8 +86,8 @@ class helper {
             $rule->update();
         }
 
-        self::release_cohort($oldcohortid);
-        self::reserve_cohort($formdata->cohortid);
+        self::unmanage_cohort($oldcohortid);
+        self::manage_cohort($formdata->cohortid);
 
         return $rule;
     }
@@ -129,16 +129,16 @@ class helper {
         if ($rule->delete()) {
             $DB->delete_records(condition::TABLE, ['ruleid' => $oldid]);
             $DB->delete_records(match::TABLE, ['ruleid' => $oldid]);
-            self::release_cohort($rule->get('cohortid'));
+            self::unmanage_cohort($rule->get('cohortid'));
         }
     }
 
     /**
-     * Release cohort from being managed by tool_cohortmanager.
+     * Unset cohort from being managed by tool_cohortmanager.
      *
      * @param int $cohortid Cohort ID.
      */
-    public static function release_cohort(int $cohortid): void {
+    public static function unmanage_cohort(int $cohortid): void {
         $cohorts = self::get_available_cohorts();
 
         if (!empty($cohorts[$cohortid]) && !rule::record_exists_select('cohortid = ?', [$cohortid])) {
@@ -149,11 +149,11 @@ class helper {
     }
 
     /**
-     * Reserve cohort to be managed by tool_cohortmanager.
+     * Set cohort to be managed by tool_cohortmanager.
      *
      * @param int $cohortid Cohort ID.
      */
-    public static function reserve_cohort(int $cohortid): void {
+    public static function manage_cohort(int $cohortid): void {
         $cohorts = self::get_available_cohorts();
         if (!empty($cohorts[$cohortid])) {
             $cohort = $cohorts[$cohortid];

@@ -239,9 +239,9 @@ class helper_test extends advanced_testcase {
     }
 
     /**
-     * Test reserving cohort.
+     * Test managing cohort.
      */
-    public function test_reserve_cohort() {
+    public function test_manage_cohort() {
         global $DB;
 
         $this->resetAfterTest();
@@ -249,14 +249,14 @@ class helper_test extends advanced_testcase {
         $cohort = $this->getDataGenerator()->create_cohort();
         $this->assertEquals('', $DB->get_field('cohort', 'component', ['id' => $cohort->id]));
 
-        helper::reserve_cohort($cohort->id);
+        helper::manage_cohort($cohort->id);
         $this->assertEquals('tool_cohortmanager', $DB->get_field('cohort', 'component', ['id' => $cohort->id]));
     }
 
     /**
-     * Test releasing cohort.
+     * Test unmanaging cohort.
      */
-    public function test_release_cohort() {
+    public function test_unmanage_cohort() {
         global $DB;
 
         $this->resetAfterTest();
@@ -264,7 +264,7 @@ class helper_test extends advanced_testcase {
         $cohort = $this->getDataGenerator()->create_cohort(['component' => 'tool_cohortmanager']);
         $this->assertEquals('tool_cohortmanager', $DB->get_field('cohort', 'component', ['id' => $cohort->id]));
 
-        helper::release_cohort($cohort->id);
+        helper::unmanage_cohort($cohort->id);
         $this->assertEquals('', $DB->get_field('cohort', 'component', ['id' => $cohort->id]));
     }
 
@@ -367,13 +367,13 @@ class helper_test extends advanced_testcase {
 
         $rule1 = new rule(0, (object)['name' => 'Test rule', 'cohortid' => $cohort->id]);
         $rule1->save();
-        helper::reserve_cohort($cohort->id);
+        helper::manage_cohort($cohort->id);
 
         $this->assertEquals('tool_cohortmanager', $DB->get_field('cohort', 'component', ['id' => $cohort->id]));
 
         $rule2 = new rule(0, (object)['name' => 'Test rule 2', 'cohortid' => $cohort->id]);
         $rule2->save();
-        helper::reserve_cohort($cohort->id);
+        helper::manage_cohort($cohort->id);
         $this->assertEquals('tool_cohortmanager', $DB->get_field('cohort', 'component', ['id' => $cohort->id]));
 
         helper::delete_rule($rule1);
