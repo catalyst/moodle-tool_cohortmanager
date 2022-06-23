@@ -17,6 +17,12 @@
 namespace tool_cohortmanager;
 
 use moodle_exception;
+use moodle_url;
+use tool_cohortmanager\output\renderer;
+
+defined('MOODLE_INTERNAL') || die();
+
+require_once($CFG->dirroot.'/cohort/lib.php');
 
 /**
  * Helper class.
@@ -30,11 +36,11 @@ class helper {
 
     /**
      * Get a list of all conditions.
+     *
      * @return array
      */
     public static function get_all_conditions(): array {
         $instances = [];
-
         $classes = \core_component::get_component_classes_in_namespace(null, '\\tool_cohortmanager\\condition');
 
         foreach (array_keys($classes) as $class) {
@@ -99,6 +105,54 @@ class helper {
         }
 
         return true;
+    }
+
+    /**
+     * Get a list of all cohort names in the system keyed by cohort ID.
+     *
+     * @return array
+     */
+    public static function get_all_cohorts(): array {
+        $cohorts = [];
+        foreach (\cohort_get_all_cohorts(0, 0)['cohorts'] as $cohort) {
+            $cohorts[$cohort->id] = $cohort->name;
+        }
+
+        return $cohorts;
+    }
+
+    /**
+     * Builds rule edit URL.
+     *
+     * @param rule $rule Rule instance.
+     * @return moodle_url
+     */
+    public static function build_rule_edit_url(rule $rule): moodle_url {
+        return new moodle_url('/admin/tool/cohortmanager/edit.php', ['ruleid' => $rule->get('id')]);
+    }
+
+    /**
+     * Builds rule delete URL.
+     *
+     * @param rule $rule Rule instance.
+     * @return moodle_url
+     */
+    public static function build_rule_delete_url(rule $rule): moodle_url {
+        return new \moodle_url('/admin/tool/cohortmanager/delete.php', [
+            'ruleid' => $rule->get('id'),
+            'sesskey' => sesskey()
+        ]);
+    }
+
+    /**
+     * Returns plugin render.
+     *
+     * @return renderer
+     */
+    public static function get_renderer(): renderer {
+        global $PAGE;
+
+        return $PAGE->get_renderer('tool_cohortmanager');
     }
 
 }

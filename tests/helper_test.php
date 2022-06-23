@@ -16,6 +16,10 @@
 
 namespace tool_cohortmanager;
 
+use advanced_testcase;
+use moodle_url;
+use moodle_exception;
+
 /**
  * Unit tests for helper class.
  *
@@ -26,7 +30,7 @@ namespace tool_cohortmanager;
  * @copyright  2022 Catalyst IT
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class helper_test extends \advanced_testcase {
+class helper_test extends advanced_testcase {
 
     /**
      * Test all conditions.
@@ -67,7 +71,7 @@ class helper_test extends \advanced_testcase {
      * @param array $formdata Broken form data
      */
     public function test_process_rule_form_with_invalid_data(array $formdata) {
-        $this->expectException(\moodle_exception::class);
+        $this->expectException(moodle_exception::class);
         $this->expectExceptionMessage('Invalid rule data');
 
         helper::process_rule_form((object)$formdata);
@@ -138,6 +142,61 @@ class helper_test extends \advanced_testcase {
         foreach ($formdata as $field => $value) {
             $this->assertEquals($value, $rule->get($field));
         }
+    }
+
+    /**
+     * Test getting all cohorts.
+     */
+    public function test_get_all_cohorts() {
+        $this->resetAfterTest();
+
+        $this->assertEmpty(helper::get_all_cohorts());
+
+        $cohort1 = $this->getDataGenerator()->create_cohort();
+        $cohort2 = $this->getDataGenerator()->create_cohort();
+        $cohort3 = $this->getDataGenerator()->create_cohort();
+
+        $allcohorts = helper::get_all_cohorts();
+
+        $this->assertCount(3, $allcohorts);
+
+        $this->assertEquals($cohort1->name, $allcohorts[$cohort1->id]);
+        $this->assertEquals($cohort2->name, $allcohorts[$cohort2->id]);
+        $this->assertEquals($cohort3->name, $allcohorts[$cohort3->id]);
+    }
+
+    /**
+     * Test edit URL.
+     */
+    public function test_build_rule_edit_url() {
+        $this->resetAfterTest();
+
+        $data = ['name' => 'Test', 'enabled' => 1, 'cohortid' => 2, 'description' => ''];
+        $rule = new rule(0, (object)$data);
+        $rule->save();
+
+        $actual = helper::build_rule_edit_url($rule);
+        $expected = new moodle_url('/admin/tool/cohortmanager/edit.php', ['ruleid' => $rule->get('id')]);
+        $this->assertEquals($expected->out(), $actual->out());
+    }
+
+    /**
+     * Test delete URL.
+     */
+    public function test_build_rule_delete_url() {
+        $this->resetAfterTest();
+
+        $data = ['name' => 'Test', 'enabled' => 1, 'cohortid' => 2, 'description' => ''];
+        $rule = new rule(0, (object)$data);
+        $rule->save();
+
+        $actual = helper::build_rule_delete_url($rule);
+        $expected = new moodle_url('/admin/tool/cohortmanager/delete.php', [
+            'ruleid' => $rule->get('id'),
+            'sesskey' => sesskey()
+        ]);
+
+        $this->assertEquals($expected->out(), $actual->out());
     }
 
 }
