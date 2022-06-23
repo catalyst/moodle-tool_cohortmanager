@@ -66,19 +66,4 @@ class rule extends persistent {
         return (bool)$this->get('enabled');
     }
 
-    /**
-     * Hook to execute after a delete.
-     *
-     * @param bool $result Whether or not the delete was successful.
-     * @return void
-     */
-    protected function after_delete($result): void {
-        global $DB;
-
-        if ($result) {
-            $DB->delete_records(condition::TABLE, ['ruleid' => $this->get('id')]);
-            $DB->delete_records(match::TABLE, ['ruleid' => $this->get('id')]);
-        }
-    }
-
 }

@@ -41,35 +41,4 @@ class rule_test extends \advanced_testcase {
         $this->assertTrue($rule->is_enabled());
     }
 
-    /**
-     * Test rule deleting clear all related tables.
-     */
-    public function test_deleting_deletes_all_related_records() {
-        global $DB;
-
-        $this->resetAfterTest();
-
-        $this->assertSame(0, $DB->count_records(rule::TABLE));
-        $this->assertSame(0, $DB->count_records(condition::TABLE));
-        $this->assertSame(0, $DB->count_records(match::TABLE));
-
-        $rule = new rule(0, (object)['name' => 'Test rule']);
-        $rule->save();
-
-        $condition = new condition(0, (object)['ruleid' => $rule->get('id'), 'classname' => 'test']);
-        $condition->save();
-
-        $match = new match(0, (object)['ruleid' => $rule->get('id'), 'userid' => 2, 'matchedtime' => time(), 'status' => 1]);
-        $match->save();
-
-        $this->assertSame(1, $DB->count_records(rule::TABLE));
-        $this->assertSame(1, $DB->count_records(condition::TABLE));
-        $this->assertSame(1, $DB->count_records(match::TABLE));
-
-        $rule->delete();
-        $this->assertSame(0, $DB->count_records(rule::TABLE));
-        $this->assertSame(0, $DB->count_records(condition::TABLE));
-        $this->assertSame(0, $DB->count_records(match::TABLE));
-    }
-
 }
