@@ -36,10 +36,9 @@ class renderer extends plugin_renderer_base {
      * @return string
      */
     public function render_managerules(managerules $rules): string {
-        $html = '';
         ob_start();
         $rules->out($rules->pagesize, true);
-        $html .= ob_get_contents();
+        $html = ob_get_contents();
         ob_end_clean();
 
         return $html;

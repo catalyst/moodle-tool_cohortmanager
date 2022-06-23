@@ -21,9 +21,11 @@ use tool_cohortmanager\output\inplace_editable_rule_description;
 use tool_cohortmanager\output\inplace_editable_rule_enabled;
 use tool_cohortmanager\output\inplace_editable_rule_name;
 use tool_cohortmanager\rule;
+use tool_cohortmanager\output\renderer;
 use html_writer;
 use table_sql;
 use renderable;
+use moodle_url;
 
 defined('MOODLE_INTERNAL') || die;
 
@@ -47,7 +49,7 @@ class managerules extends table_sql implements renderable {
 
     /**
      * Plugin render.
-     * @var \renderer_base
+     * @var renderer
      */
     protected $renderer;
 
@@ -55,10 +57,10 @@ class managerules extends table_sql implements renderable {
      * Sets up the table.
      *
      * @param string $uniqueid Unique id of form.
-     * @param \moodle_url $url Url where this table is displayed.
+     * @param moodle_url $url Url where this table is displayed.
      * @param int $perpage Number of rules to display per page.
      */
-    public function __construct($uniqueid, \moodle_url $url, int $perpage = 100) {
+    public function __construct($uniqueid, moodle_url $url, int $perpage = 100) {
         parent::__construct($uniqueid);
 
         $this->define_columns([

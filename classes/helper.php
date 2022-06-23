@@ -36,6 +36,7 @@ class helper {
 
     /**
      * Get a list of all conditions.
+     *
      * @return array
      */
     public static function get_all_conditions(): array {
@@ -108,6 +109,7 @@ class helper {
 
     /**
      * Get a list of all cohort names in the system keyed by cohort ID.
+     *
      * @return array
      */
     public static function get_all_cohorts(): array {
@@ -122,8 +124,8 @@ class helper {
     /**
      * Builds rule edit URL.
      *
-     * @param \tool_cohortmanager\rule $rule Rule instance.
-     * @return \moodle_url
+     * @param rule $rule Rule instance.
+     * @return moodle_url
      */
     public static function build_rule_edit_url(rule $rule): moodle_url {
         return new moodle_url('/admin/tool/cohortmanager/edit.php', ['ruleid' => $rule->get('id')]);
@@ -132,8 +134,8 @@ class helper {
     /**
      * Builds rule delete URL.
      *
-     * @param \tool_cohortmanager\rule $rule Rule instance.
-     * @return \moodle_url
+     * @param rule $rule Rule instance.
+     * @return moodle_url
      */
     public static function build_rule_delete_url(rule $rule): moodle_url {
         return new \moodle_url('/admin/tool/cohortmanager/delete.php', [
@@ -145,7 +147,7 @@ class helper {
     /**
      * Returns plugin render.
      *
-     * @return \tool_cohortmanager\output\renderer
+     * @return renderer
      */
     public static function get_renderer(): renderer {
         global $PAGE;
