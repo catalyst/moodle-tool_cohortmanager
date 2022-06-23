@@ -92,7 +92,7 @@ class rule_form extends \moodleform {
     protected function get_cohort_options(): array {
         $options = ['' => get_string('choosedots')];
 
-        foreach (helper::get_all_cohorts() as $cohort) {
+        foreach (helper::get_available_cohorts() as $cohort) {
             $options[$cohort->id] = $cohort->name;
         }
 

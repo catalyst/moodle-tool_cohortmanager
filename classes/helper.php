@@ -35,6 +35,11 @@ require_once($CFG->dirroot.'/cohort/lib.php');
 class helper {
 
     /**
+     * Cohort component to be set in {cohort} table.
+     */
+    const COHORT_COMPONENT = 'tool_cohortmanager';
+
+    /**
      * Get a list of all conditions.
      *
      * @return array
@@ -106,8 +111,8 @@ class helper {
             }
         }
 
-        if (!key_exists($formdata->cohortid, self::get_all_cohorts())) {
-            throw new moodle_exception('Invalid rule data. Cohort is not exist: ' . $formdata->cohortid);
+        if (!key_exists($formdata->cohortid, self::get_available_cohorts())) {
+            throw new moodle_exception('Invalid rule data. Cohort is invalid: ' . $formdata->cohortid);
         }
     }
 
@@ -134,7 +139,7 @@ class helper {
      * @param int $cohortid Cohort ID.
      */
     public static function release_cohort(int $cohortid): void {
-        $cohorts = self::get_all_cohorts();
+        $cohorts = self::get_available_cohorts();
 
         if (!empty($cohorts[$cohortid]) && !rule::record_exists_select('cohortid = ?', [$cohortid])) {
             $cohort = $cohorts[$cohortid];
@@ -149,7 +154,7 @@ class helper {
      * @param int $cohortid Cohort ID.
      */
     public static function reserve_cohort(int $cohortid): void {
-        $cohorts = self::get_all_cohorts();
+        $cohorts = self::get_available_cohorts();
         if (!empty($cohorts[$cohortid])) {
             $cohort = $cohorts[$cohortid];
             $cohort->component = 'tool_cohortmanager';
@@ -162,10 +167,12 @@ class helper {
      *
      * @return array
      */
-    public static function get_all_cohorts(): array {
+    public static function get_available_cohorts(): array {
         $cohorts = [];
         foreach (\cohort_get_all_cohorts(0, 0)['cohorts'] as $cohort) {
-            $cohorts[$cohort->id] = $cohort;
+            if (empty($cohort->component) || $cohort->component == self::COHORT_COMPONENT) {
+                $cohorts[$cohort->id] = $cohort;
+            }
         }
 
         return $cohorts;

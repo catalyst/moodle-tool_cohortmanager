@@ -84,7 +84,7 @@ class managerules extends table_sql implements renderable {
         $this->define_baseurl($url);
 
         $this->renderer = helper::get_renderer();
-        $this->cohorts = helper::get_all_cohorts();
+        $this->cohorts = helper::get_available_cohorts();
         $this->pagesize = $perpage;
     }
 
