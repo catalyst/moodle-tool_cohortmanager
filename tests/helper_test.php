@@ -150,21 +150,55 @@ class helper_test extends advanced_testcase {
     }
 
     /**
-     * Test getting all cohorts.
+     * Test trying to submit form data and sending not existing cohort.
      */
-    public function test_get_all_cohorts() {
+    public function test_process_rule_form_with_not_existing_cohort() {
+        $this->expectException(moodle_exception::class);
+        $this->expectExceptionMessage('Invalid rule data. Cohort is invalid: 999');
+
+        $formdata = ['name' => 'Test', 'enabled' => 1, 'cohortid' => 999, 'description' => ''];
+        helper::process_rule_form((object)$formdata);
+    }
+
+    /**
+     * Test trying to submit form data and sending a cohort taken by other component.
+     */
+    public function test_process_rule_form_with_cohort_managed_by_other_component() {
         $this->resetAfterTest();
 
-        $this->assertEmpty(helper::get_all_cohorts());
+        $cohort = $this->getDataGenerator()->create_cohort(['component' => 'mod_assign']);
+        $this->expectException(moodle_exception::class);
+        $this->expectExceptionMessage('Invalid rule data. Cohort is invalid: ' . $cohort->id);
 
-        $cohort1 = $this->getDataGenerator()->create_cohort();
+        $formdata = ['name' => 'Test', 'enabled' => 1, 'cohortid' => $cohort->id, 'description' => ''];
+        helper::process_rule_form((object)$formdata);
+    }
+
+    /**
+     * Test component string for cohorts.
+     */
+    public function test_cohort_component() {
+        $this->assertSame('tool_cohortmanager', helper::COHORT_COMPONENT);
+    }
+
+    /**
+     * Test getting all available cohorts.
+     */
+    public function test_get_available_cohorts() {
+        $this->resetAfterTest();
+
+        $this->assertEmpty(helper::get_available_cohorts());
+
+        $cohort1 = $this->getDataGenerator()->create_cohort(['component' => helper::COHORT_COMPONENT]);
         $cohort2 = $this->getDataGenerator()->create_cohort();
         $cohort3 = $this->getDataGenerator()->create_cohort();
+        $cohort4 = $this->getDataGenerator()->create_cohort(['component' => 'mod_assign']);
 
-        $allcohorts = helper::get_all_cohorts();
+        $allcohorts = helper::get_available_cohorts();
 
         $this->assertCount(3, $allcohorts);
 
+        $this->assertArrayNotHasKey($cohort4->id, $allcohorts);
         $this->assertEquals($cohort1, $allcohorts[$cohort1->id]);
         $this->assertEquals($cohort2, $allcohorts[$cohort2->id]);
         $this->assertEquals($cohort3, $allcohorts[$cohort3->id]);
@@ -205,9 +239,9 @@ class helper_test extends advanced_testcase {
     }
 
     /**
-     * Test reserving cohort.
+     * Test managing cohort.
      */
-    public function test_reserve_cohort() {
+    public function test_manage_cohort() {
         global $DB;
 
         $this->resetAfterTest();
@@ -215,14 +249,14 @@ class helper_test extends advanced_testcase {
         $cohort = $this->getDataGenerator()->create_cohort();
         $this->assertEquals('', $DB->get_field('cohort', 'component', ['id' => $cohort->id]));
 
-        helper::reserve_cohort($cohort->id);
+        helper::manage_cohort($cohort->id);
         $this->assertEquals('tool_cohortmanager', $DB->get_field('cohort', 'component', ['id' => $cohort->id]));
     }
 
     /**
-     * Test releasing cohort.
+     * Test unmanaging cohort.
      */
-    public function test_release_cohort() {
+    public function test_unmanage_cohort() {
         global $DB;
 
         $this->resetAfterTest();
@@ -230,7 +264,7 @@ class helper_test extends advanced_testcase {
         $cohort = $this->getDataGenerator()->create_cohort(['component' => 'tool_cohortmanager']);
         $this->assertEquals('tool_cohortmanager', $DB->get_field('cohort', 'component', ['id' => $cohort->id]));
 
-        helper::release_cohort($cohort->id);
+        helper::unmanage_cohort($cohort->id);
         $this->assertEquals('', $DB->get_field('cohort', 'component', ['id' => $cohort->id]));
     }
 
@@ -333,13 +367,13 @@ class helper_test extends advanced_testcase {
 
         $rule1 = new rule(0, (object)['name' => 'Test rule', 'cohortid' => $cohort->id]);
         $rule1->save();
-        helper::reserve_cohort($cohort->id);
+        helper::manage_cohort($cohort->id);
 
         $this->assertEquals('tool_cohortmanager', $DB->get_field('cohort', 'component', ['id' => $cohort->id]));
 
         $rule2 = new rule(0, (object)['name' => 'Test rule 2', 'cohortid' => $cohort->id]);
         $rule2->save();
-        helper::reserve_cohort($cohort->id);
+        helper::manage_cohort($cohort->id);
         $this->assertEquals('tool_cohortmanager', $DB->get_field('cohort', 'component', ['id' => $cohort->id]));
 
         helper::delete_rule($rule1);
