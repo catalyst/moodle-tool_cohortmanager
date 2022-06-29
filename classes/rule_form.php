@@ -68,20 +68,25 @@ class rule_form extends \moodleform {
         $mform->addHelpButton('enabled', 'enabled', 'tool_cohortmanager');
         $mform->setDefault('enabled', 1);
 
-        // Hidden text field for step JSON.
-        $mform->addElement('hidden', 'conditionjson');
+        // Hidden text field for conditions JSON.
+        $mform->addElement('hidden', 'conditionjson', '', ['id' => 'id_conditionjson']);
         $mform->setType('conditionjson', PARAM_RAW_TRIMMED);
 
         // A flag to indicate whether the conditions were updated or not.
-        $mform->addElement('hidden', 'isconditionschanged');
+        $mform->addElement('hidden', 'isconditionschanged', 0, ['id' => 'id_isconditionschanged']);
         $mform->setType('isconditionschanged', PARAM_BOOL);
         $mform->setDefault('isstepschanged', 0);
 
-        // Conditions table will be added here, in the "definition_after_data()" function (so that it can include
-        // conditions from the submission in process, in case we fail validation).
+        $conditions = ['' => get_string('choosedots')];
+        foreach (helper::get_all_conditions() as $class => $condition) {
+            $conditions[$class] = $condition->get_name();
+        }
 
-        // Add processing step button.
-        $mform->addElement('button', 'conditionmodalbutton', get_string('addcondition', 'tool_cohortmanager'));
+        $group = [];
+        $group[] = $mform->createElement('select', 'condition', '', $conditions);
+        $group[] = $mform->createElement('button', 'conditionmodalbutton', get_string('addcondition', 'tool_cohortmanager'));
+        $mform->addGroup($group, 'conditiongroup', 'Condition', ' ', false);
+
         $this->add_action_buttons();
     }
 
@@ -97,6 +102,24 @@ class rule_form extends \moodleform {
         }
 
         return $options;
+    }
+
+    public function definition_after_data() {
+        global $OUTPUT;
+
+        $mform = $this->_form;
+        $conditionjson = $mform->getElementValue('conditionjson');
+        $conditions = $OUTPUT->render_from_template('tool_cohortmanager/conditions', [
+            'conditions' => json_decode($conditionjson, true)
+        ]);
+
+        $mform->insertElementBefore(
+            $mform->createElement(
+                'html',
+                '<div id="conditions">' . $conditions . '</div>'
+            ),
+            'buttonar'
+        );
     }
 
 }

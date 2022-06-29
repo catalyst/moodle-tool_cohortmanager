@@ -47,7 +47,7 @@ if (!empty($ruleid)) {
     if (empty($rule)) {
         throw new dml_missing_record_exception(null);
     } else {
-        $mform->set_data($rule->to_record());
+        $mform->set_data(helper::build_rule_data_for_form($rule));
     }
 }
 
@@ -63,6 +63,7 @@ if ($mform->is_cancelled()) {
     redirect($manageurl);
 }
 
+$PAGE->requires->js_call_amd('tool_cohortmanager/condition_form', 'init');
 echo $OUTPUT->header();
 $mform->display();
 echo $OUTPUT->footer();
