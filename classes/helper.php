@@ -172,22 +172,16 @@ class helper {
      * @return condition[]
      */
     protected static function process_condition_json(string $formjson): array {
-        $submittedrecords = json_decode($formjson, true);
-
         // Get only required fields for condition persistent.
         $requiredconditionfield = array_diff(
             array_keys(condition::properties_definition()),
             ['ruleid', 'usermodified', 'timecreated', 'timemodified']
         );
 
-        // Filter out submitted data to only fields required for condition persistent.
-        array_walk($submittedrecords, function (&$submittedrecord) use ($requiredconditionfield): void {
-            foreach ($submittedrecord as $key => $value) {
-                if (!in_array($key, $requiredconditionfield)) {
-                    unset($submittedrecord[$key]);
-                }
-            }
-        });
+        // Filter out submitted conditions data to only fields required for condition persistent.
+        $submittedrecords = array_map(function (array $record) use ($requiredconditionfield): array {
+            return array_intersect_key($record, array_flip($requiredconditionfield));
+        }, json_decode($formjson, true));
 
         $conditions = [];
         foreach ($submittedrecords as $submittedrecord) {

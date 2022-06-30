@@ -35,8 +35,8 @@ const SELECTORS = {
     ADD_CONDITION_BUTTON: '#id_conditionmodalbutton',
     SELECT_CONDITION: '#id_condition',
     CONDITIONS_LIST: '#conditions',
-    RULE_FROM_CONDITIONS_ELEMENT: '#id_conditionjson',
-    RULE_FROM_CONDITIONS_CHANGED_ELEMENT: '#id_isconditionschanged',
+    RULE_FROM_CONDITIONS_JSON: '#id_conditionjson',
+    RULE_FROM_IS_CONDITIONS_CHANGED: '#id_isconditionschanged',
     CONDITIONS_NOT_SAVED_WARNING: '#tool-cohortmanager-not-saved',
     CONDITION_EDIT_ACTION: 'tool-cohortmanager-condition-edit',
     CONDITION_DELETE_ACTION: 'tool-cohortmanager-condition-delete',
@@ -65,7 +65,7 @@ export const init = () => {
  * @param {string} className
  * @param {string} submittedData Submitted form data.
  * @param {any} defaults Default values for the form
- * @returns {Deferred|*}
+ * @returns {Promise}
  */
 const getModalFormBody = (className, submittedData, defaults) => {
     if (defaults === undefined) {
@@ -162,17 +162,10 @@ const submitModalFormAjax = (className, modal) => {
 /**
  * Update condition with provided data.
  *
- * @param {array} data Updated condition data.
+ * @param {object} data Updated condition data.
  */
 const updateCondition = (data) => {
-    let condition = {
-        id: data.id,
-        position: data.position,
-        classname: data.classname,
-        description: data.description,
-        configdata: data.configdata,
-        name: data.name,
-    };
+    let condition = {...data};
 
     let conditions = getConditions();
 
@@ -193,7 +186,7 @@ const updateCondition = (data) => {
  */
 const getConditions = () => {
     let conditions = [];
-    const conditionsjson = document.querySelector('#id_conditionjson').value;
+    const conditionsjson = document.querySelector(SELECTORS.RULE_FROM_CONDITIONS_JSON).value;
     if (conditionsjson !== '') {
         conditions = JSON.parse(conditionsjson);
     }
@@ -207,8 +200,8 @@ const getConditions = () => {
  * @param {array} conditions A list of conditions to save
  */
 const saveConditionsToRuleForm = (conditions) => {
-    document.querySelector(SELECTORS.RULE_FROM_CONDITIONS_ELEMENT).setAttribute('value', JSON.stringify(conditions));
-    document.querySelector(SELECTORS.RULE_FROM_CONDITIONS_CHANGED_ELEMENT).setAttribute('value', 1);
+    document.querySelector(SELECTORS.RULE_FROM_CONDITIONS_JSON).setAttribute('value', JSON.stringify(conditions));
+    document.querySelector(SELECTORS.RULE_FROM_IS_CONDITIONS_CHANGED).setAttribute('value', 1);
 };
 
 /**
@@ -245,18 +238,13 @@ const applyConditionActions = () => {
     const deleteActions = document.getElementsByClassName(SELECTORS.CONDITION_DELETE_ACTION);
     for (let i = 0; i < deleteActions.length; i++) {
         deleteActions[i].addEventListener('click', () => {
-            let conditions = getConditions();
+            // On a click to a delete icon, grab the position of the selected for deleting condition
+            // and remove an element of that position from the list of all existing conditions.
+            // Then save updated list of conditions to the rule form and render new list on a screen.
             let position = deleteActions[i].dataset.position;
-            conditions.splice(position, 1);
-
-            if (position <= conditions.length) {
-                conditions.slice(position).forEach(
-                    function(condition) {
-                        condition.position = condition.position - 1;
-                    }
-                );
-            }
-
+            let conditions = getConditions()
+                .filter(c => c.position !== position)
+                .map((condition, index) => ({...condition, position: index}));
             saveConditionsToRuleForm(conditions);
             renderConditions(conditions);
         });
@@ -266,6 +254,8 @@ const applyConditionActions = () => {
     const editActions = document.getElementsByClassName(SELECTORS.CONDITION_EDIT_ACTION);
     for (let i = 0; i < editActions.length; i++) {
         editActions[i].addEventListener('click', () => {
+            // On a click to an edit icon for a selected condition, grab condition data from the list of
+            // all conditions by its position and then render modal form using the condition class.
             let conditions = getConditions();
             let conditionPosition = editActions[i].dataset.position;
             let condition = conditions[conditionPosition];
