@@ -35,8 +35,8 @@ const SELECTORS = {
     ADD_CONDITION_BUTTON: '#id_conditionmodalbutton',
     SELECT_CONDITION: '#id_condition',
     CONDITIONS_LIST: '#conditions',
-    RULE_FROM_CONDITIONS_JSON: '#id_conditionjson',
-    RULE_FROM_IS_CONDITIONS_CHANGED: '#id_isconditionschanged',
+    RULE_FORM_CONDITIONS_JSON: '#id_conditionjson',
+    RULE_FORM_IS_CONDITIONS_CHANGED: '#id_isconditionschanged',
     CONDITIONS_NOT_SAVED_WARNING: '#tool-cohortmanager-not-saved',
     CONDITION_EDIT_ACTION: 'tool-cohortmanager-condition-edit',
     CONDITION_DELETE_ACTION: 'tool-cohortmanager-condition-delete',
@@ -186,7 +186,7 @@ const updateCondition = (data) => {
  */
 const getConditions = () => {
     let conditions = [];
-    const conditionsjson = document.querySelector(SELECTORS.RULE_FROM_CONDITIONS_JSON).value;
+    const conditionsjson = document.querySelector(SELECTORS.RULE_FORM_CONDITIONS_JSON).value;
     if (conditionsjson !== '') {
         conditions = JSON.parse(conditionsjson);
     }
@@ -200,8 +200,8 @@ const getConditions = () => {
  * @param {array} conditions A list of conditions to save
  */
 const saveConditionsToRuleForm = (conditions) => {
-    document.querySelector(SELECTORS.RULE_FROM_CONDITIONS_JSON).setAttribute('value', JSON.stringify(conditions));
-    document.querySelector(SELECTORS.RULE_FROM_IS_CONDITIONS_CHANGED).setAttribute('value', 1);
+    document.querySelector(SELECTORS.RULE_FORM_CONDITIONS_JSON).setAttribute('value', JSON.stringify(conditions));
+    document.querySelector(SELECTORS.RULE_FORM_IS_CONDITIONS_CHANGED).setAttribute('value', 1);
 };
 
 /**
