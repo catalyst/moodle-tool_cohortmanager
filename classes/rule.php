@@ -66,4 +66,18 @@ class rule extends persistent {
         return (bool)$this->get('enabled');
     }
 
+    /**
+     * Get a list of condition records for that rule.
+     *
+     * @return condition[]
+     */
+    public function get_condition_records(): array {
+        $conditions = [];
+        foreach (condition::get_records(['ruleid' => $this->get('id')], 'position') as $condition) {
+            $conditions[$condition->get('id')] = $condition;
+        }
+
+        return $conditions;
+    }
+
 }

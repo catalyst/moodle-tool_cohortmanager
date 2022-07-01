@@ -48,6 +48,9 @@ class condition extends persistent {
                 'type' => PARAM_RAW,
                 'default' => '{}',
             ],
+            'position' => [
+                'type' => PARAM_INT,
+            ],
         ];
     }
 

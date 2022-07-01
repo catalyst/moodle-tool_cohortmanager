@@ -1,5 +1,5 @@
 <?php
-// This file is part of Moodle - https://moodle.org/
+// This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -12,10 +12,10 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Plugin version and other meta-data are defined here.
+ * List of Web Services for the plugin.
  *
  * @package     tool_cohortmanager
  * @copyright   2022 Catalyst IT
@@ -24,9 +24,13 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->component = 'tool_cohortmanager';
-$plugin->release = 2022061003;
-$plugin->version = 2022061003;
-$plugin->requires = 2020061500;
-$plugin->maturity = MATURITY_STABLE;
-$plugin->supported = [39, 401];  // Available as of Moodle 3.9.0 or later.
+$functions = [
+    'tool_cohortmanager_submit_condition_form' => [
+        'classname'       => 'tool_cohortmanager\external\condition_form',
+        'methodname'      => 'submit',
+        'description'     => 'Submits condition form',
+        'type'            => 'read',
+        'capabilities'    => '',
+        'ajax'            => true,
+    ],
+];

@@ -41,4 +41,27 @@ class rule_test extends \advanced_testcase {
         $this->assertTrue($rule->is_enabled());
     }
 
+    /**
+     * Test getting a list of related condition records.
+     */
+    public function test_get_condition_records() {
+        $this->resetAfterTest();
+
+        $rule = new rule(0, (object)['name' => 'Test rule 1']);
+        $rule->save();
+
+        $this->assertEmpty($rule->get_condition_records());
+
+        $condition1 = new condition(0, (object)['ruleid' => $rule->get('id'), 'classname' => 'test', 'position' => 0]);
+        $condition1->save();
+        $condition2 = new condition(0, (object)['ruleid' => $rule->get('id'), 'classname' => 'test', 'position' => 1]);
+        $condition2->save();
+
+        $actual = $rule->get_condition_records();
+        $this->assertCount(2, $actual);
+
+        $this->assertEquals($actual[$condition1->get('id')]->to_record(), $condition1->to_record());
+        $this->assertEquals($actual[$condition2->get('id')]->to_record(), $condition2->to_record());
+    }
+
 }

@@ -16,6 +16,7 @@
 
 namespace tool_cohortmanager;
 
+use core_component;
 use moodle_exception;
 use moodle_url;
 use tool_cohortmanager\output\renderer;
@@ -42,16 +43,16 @@ class helper {
     /**
      * Get a list of all conditions.
      *
-     * @return array
+     * @return condition_base[]
      */
     public static function get_all_conditions(): array {
         $instances = [];
-        $classes = \core_component::get_component_classes_in_namespace(null, '\\tool_cohortmanager\\condition');
+        $classes = core_component::get_component_classes_in_namespace(null, '\\tool_cohortmanager\\condition');
 
         foreach (array_keys($classes) as $class) {
             $reflectionclass = new \ReflectionClass($class);
             if (!$reflectionclass->isAbstract()) {
-                $instances[] = $class::get_instance();
+                $instances[$class] = $class::get_instance();
             }
         }
 
@@ -65,6 +66,8 @@ class helper {
      * @return rule Rule instance.
      */
     public static function process_rule_form(\stdClass $formdata): rule {
+        global $DB;
+
         self::validate_rule_data($formdata);
 
         $ruledata = (object) [
@@ -76,20 +79,29 @@ class helper {
 
         $oldcohortid = 0;
 
-        if (empty($formdata->id)) {
-            $rule = new rule(0, $ruledata);
-            $rule->create();
-        } else {
-            $rule = new rule($formdata->id);
-            $oldcohortid = $rule->get('cohortid');
-            $rule->from_record($ruledata);
-            $rule->update();
+        $transaction = $DB->start_delegated_transaction();
+
+        try {
+            if (empty($formdata->id)) {
+                $rule = new rule(0, $ruledata);
+                $rule->create();
+            } else {
+                $rule = new rule($formdata->id);
+                $oldcohortid = $rule->get('cohortid');
+                $rule->from_record($ruledata);
+                $rule->update();
+            }
+
+            self::unmanage_cohort($oldcohortid);
+            self::manage_cohort($formdata->cohortid);
+            self::process_rule_conditions($rule, $formdata);
+
+            $transaction->allow_commit();
+            return $rule;
+        } catch (\Exception $exception) {
+            $transaction->rollback($exception);
+            throw new $exception;
         }
-
-        self::unmanage_cohort($oldcohortid);
-        self::manage_cohort($formdata->cohortid);
-
-        return $rule;
     }
 
     /**
@@ -114,6 +126,69 @@ class helper {
         if (!key_exists($formdata->cohortid, self::get_available_cohorts())) {
             throw new moodle_exception('Invalid rule data. Cohort is invalid: ' . $formdata->cohortid);
         }
+
+        if (!isset($formdata->conditionjson)) {
+            throw new moodle_exception('Invalid rule data. Missing condition data.');
+        }
+    }
+
+    /**
+     * Process conditions for submitted rule.
+     *
+     * @param rule $rule Rule instance/
+     * @param \stdClass $formdata Data received from rule_form.
+     */
+    protected static function process_rule_conditions(rule $rule, \stdClass $formdata): void {
+        if (!empty($formdata->isconditionschanged)) {
+            $submittedconditions = self::process_condition_json($formdata->conditionjson);
+            $oldconditions = $rule->get_condition_records();
+
+            $toupdate = [];
+            foreach ($submittedconditions as $condition) {
+                if (empty($condition->get('id'))) {
+                    $condition->set('ruleid', $rule->get('id'));
+                    $condition->create();
+                } else {
+                    $toupdate[$condition->get('id')] = $condition;
+                }
+            }
+
+            $todelete = array_diff_key($oldconditions, $toupdate);
+
+            foreach ($todelete as $conditiontodelete) {
+                $conditiontodelete->delete();
+            }
+
+            foreach ($toupdate as $conditiontoupdate) {
+                $conditiontoupdate->save();
+            }
+        }
+    }
+
+    /**
+     * Take JSON from the form and return a list of condition persistents.
+     * @param string $formjson Conditions JSON string from the rule form.
+     *
+     * @return condition[]
+     */
+    protected static function process_condition_json(string $formjson): array {
+        // Get only required fields for condition persistent.
+        $requiredconditionfield = array_diff(
+            array_keys(condition::properties_definition()),
+            ['ruleid', 'usermodified', 'timecreated', 'timemodified']
+        );
+
+        // Filter out submitted conditions data to only fields required for condition persistent.
+        $submittedrecords = array_map(function (array $record) use ($requiredconditionfield): array {
+            return array_intersect_key($record, array_flip($requiredconditionfield));
+        }, json_decode($formjson, true));
+
+        $conditions = [];
+        foreach ($submittedrecords as $submittedrecord) {
+            $conditions[] = new condition($submittedrecord['id'], (object)$submittedrecord);
+        }
+
+        return $conditions;
     }
 
     /**
@@ -210,6 +285,31 @@ class helper {
         global $PAGE;
 
         return $PAGE->get_renderer('tool_cohortmanager');
+    }
+
+    /**
+     * Build data for setting into a rule form as default values.
+     *
+     * @param rule $rule Rule to build a data for.
+     * @return array
+     */
+    public static function build_rule_data_for_form(rule $rule): array {
+        $data = (array)$rule->to_record();
+        $data['conditionjson'] = '';
+
+        $conditions = [];
+        foreach ($rule->get_condition_records() as $persistent) {
+            $condition = condition_base::get_instance($persistent->get('id'));
+            $conditions[] = (array)$persistent->to_record() +
+                ['description' => $condition->get_config_description()] +
+                ['name' => $condition->get_name()];
+        }
+
+        if (!empty($conditions)) {
+            $data['conditionjson'] = json_encode($conditions);
+        }
+
+        return $data;
     }
 
 }

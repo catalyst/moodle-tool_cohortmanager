@@ -28,7 +28,7 @@ abstract class condition_base {
 
     /**
      * Condition persistent object.
-     * @var $condition
+     * @var condition $condition
      */
     protected $condition;
 
@@ -43,7 +43,6 @@ abstract class condition_base {
      *
      * @param int $id
      * @param \stdClass|null $record
-     *
      * @return \tool_cohortmanager\condition_base|null
      */
     final public static function get_instance(int $id = 0, ?\stdClass $record = null):? condition_base {
@@ -62,6 +61,41 @@ abstract class condition_base {
         $instance = new $classname();
         $instance->condition = $condition;
         return $instance;
+    }
+
+    /**
+     * Gets required config data form submitted condition form data.
+     *
+     * @param \stdClass $formdata Form data generated via $mform->get_data()
+     * @return array
+     */
+    public static function retrieve_config_data(\stdClass $formdata): array {
+        $configdata = (array)$formdata;
+
+        // Everything except these fields is considered as config data.
+        unset($configdata['id']);
+        unset($configdata['ruleid']);
+        unset($configdata['position']);
+
+        return $configdata;
+    }
+
+    /**
+     * A config data for that condition.
+     *
+     * @return array
+     */
+    public function get_configdata(): array {
+        return json_decode($this->condition->get('configdata'), true);
+    }
+
+    /**
+     * Sets config data.
+     *
+     * @param array $configdata
+     */
+    public function set_configdata(array $configdata): void {
+        $this->condition->set('configdata', json_encode($configdata));
     }
 
     /**
@@ -93,5 +127,12 @@ abstract class condition_base {
      * @return sql_data
      */
     abstract public function get_sql_data(): sql_data;
+
+    /**
+     * Human readable description of the configured condition.
+     *
+     * @return string
+     */
+    abstract public function get_config_description(): string;
 
 }
