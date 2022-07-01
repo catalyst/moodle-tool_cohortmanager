@@ -40,6 +40,7 @@ const SELECTORS = {
     CONDITIONS_NOT_SAVED_WARNING: '#tool-cohortmanager-not-saved',
     CONDITION_EDIT_ACTION: 'tool-cohortmanager-condition-edit',
     CONDITION_DELETE_ACTION: 'tool-cohortmanager-condition-delete',
+    CONDITIONS: 'tool-cohortmanager-conditions'
 };
 
 /**
@@ -233,34 +234,29 @@ const renderConditions = (conditions) => {
  * Apply actions to conditions.
  */
 const applyConditionActions = () => {
+    document.getElementsByClassName(SELECTORS.CONDITIONS)[0].addEventListener('click', event => {
+        let element = event.target.tagName == 'SPAN' ? event.target : event.target.parentNode;
 
-    // Delete actions.
-    const deleteActions = document.getElementsByClassName(SELECTORS.CONDITION_DELETE_ACTION);
-    for (let i = 0; i < deleteActions.length; i++) {
-        deleteActions[i].addEventListener('click', () => {
-            // On a click to a delete icon, grab the position of the selected for deleting condition
-            // and remove an element of that position from the list of all existing conditions.
-            // Then save updated list of conditions to the rule form and render new list on a screen.
-            let position = deleteActions[i].dataset.position;
+        // On a click to a delete icon, grab the position of the selected for deleting condition
+        // and remove an element of that position from the list of all existing conditions.
+        // Then save updated list of conditions to the rule form and render new list on a screen.
+        if (element.className == SELECTORS.CONDITION_DELETE_ACTION) {
+            let position = element.dataset.position;
             let conditions = getConditions()
-                .filter(c => c.position !== position)
+                .filter(c => c.position != position)
                 .map((condition, index) => ({...condition, position: index}));
             saveConditionsToRuleForm(conditions);
             renderConditions(conditions);
-        });
-    }
+        }
 
-    // Edit actions.
-    const editActions = document.getElementsByClassName(SELECTORS.CONDITION_EDIT_ACTION);
-    for (let i = 0; i < editActions.length; i++) {
-        editActions[i].addEventListener('click', () => {
-            // On a click to an edit icon for a selected condition, grab condition data from the list of
-            // all conditions by its position and then render modal form using the condition class.
+        // On a click to an edit icon for a selected condition, grab condition data from the list of
+        // all conditions by its position and then render modal form using the condition class.
+        if (element.className == SELECTORS.CONDITION_EDIT_ACTION) {
+            let position = element.dataset.position;
             let conditions = getConditions();
-            let conditionPosition = editActions[i].dataset.position;
-            let condition = conditions[conditionPosition];
+            let condition = conditions[position];
 
             displayModalForm(condition.classname, condition);
-        });
-    }
+        }
+    });
 };
