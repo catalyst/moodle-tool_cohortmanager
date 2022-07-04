@@ -523,7 +523,7 @@ class helper_test extends advanced_testcase {
         $rule->save();
 
         $condition = condition_base::get_instance(0, (object)[
-            'classname' => '\tool_cohortmanager\tool_cohortmanager\condition\user_profile'
+            'classname' => 'tool_cohortmanager\tool_cohortmanager\condition\user_profile'
         ]);
 
         // Condition username = user1.
@@ -543,6 +543,52 @@ class helper_test extends advanced_testcase {
         // Now use 2 should be removed from the cohort and user 1 added as a member.
         $this->assertEquals(1, $DB->count_records('cohort_members', ['cohortid' => $cohort->id, 'userid' => $user1->id]));
         $this->assertEquals(0, $DB->count_records('cohort_members', ['cohortid' => $cohort->id, 'userid' => $user2->id]));
+    }
+
+    /**
+     * Test getting rules with condition.
+     */
+    public function test_get_rules_with_condition() {
+        $this->resetAfterTest();
+
+        $rule1 = new rule(0, (object)['name' => 'Test rule1 1', 'enabled' => 1]);
+        $rule1->save();
+
+        $rule2 = new rule(0, (object)['name' => 'Test rule1 2', 'enabled' => 0]);
+        $rule2->save();
+
+        $rule3 = new rule(0, (object)['name' => 'Test rule1 3', 'enabled' => 1]);
+        $rule3->save();
+
+        $condition1 = condition_base::get_instance(0, (object)[
+            'classname' => 'tool_cohortmanager\tool_cohortmanager\condition\user_profile'
+        ]);
+        $record1 = $condition1->get_record();
+        $record1->set('ruleid', $rule1->get('id'));
+        $record1->set('position', 0);
+        $record1->save();
+
+        $condition2 = condition_base::get_instance(0, (object)[
+            'classname' => 'tool_cohortmanager\tool_cohortmanager\condition\user_profile'
+        ]);
+        $record2 = $condition2->get_record();
+        $record2->set('ruleid', $rule2->get('id'));
+        $record2->set('position', 0);
+        $record2->save();
+
+        $condition3 = condition_base::get_instance(0, (object)[
+            'classname' => 'tool_cohortmanager\tool_cohortmanager\condition\user_profile'
+        ]);
+        $record3 = $condition3->get_record();
+        $record3->set('ruleid', $rule3->get('id'));
+        $record3->set('position', 0);
+        $record3->save();
+
+        $rules = helper::get_rules_with_condition($condition1);
+
+        $this->assertCount(2, $rules);
+        $this->assertArrayHasKey($rule1->get('id'), $rules);
+        $this->assertArrayHasKey($rule3->get('id'), $rules);
     }
 
 }

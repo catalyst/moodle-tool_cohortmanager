@@ -16,65 +16,46 @@
 
 namespace tool_cohortmanager;
 
+use core\event\base;
+
 /**
  * Event observer class.
  *
  * @package     tool_cohortmanager
- * @category    event
  * @copyright   2022 Catalyst IT
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class observer {
 
     /**
-     * Triggered via $event.
+     * Process event based rules.
      *
-     * @param \core\event\user_loggedin $event The event.
-     * @return bool True on success.
+     * @param base $event The event.
      */
-    public static function user_loggedin($event) {
-
-        // For more information about the Events API please visit {@link https://docs.moodle.org/dev/Events_API}.
-
-        return true;
+    public static function process_event(base $event): void {
+        foreach (helper::get_conditions_with_event($event) as $condition) {
+            foreach (helper::get_rules_with_condition($condition) as $rule) {
+                helper::process_rule($rule, self::get_userid_from_event($event));
+            }
+        }
     }
 
     /**
-     * Triggered via $event.
+     * Gets user id from the event.
      *
-     * @param \core\event\user_loggedinas $event The event.
-     * @return bool True on success.
+     * @param \core\event\base $event Triggered event.
+     * @return int
      */
-    public static function user_loggedinas($event) {
+    protected static function get_userid_from_event(base $event): int {
+        $data = $event->get_data();
 
-        // For more information about the Events API please visit {@link https://docs.moodle.org/dev/Events_API}.
+        if (array_key_exists('relateduserid', $data)) {
+            $userid = $data['relateduserid'];
+        } else {
+            $userid = $data['userid'];
+        }
 
-        return true;
+        return $userid;
     }
 
-    /**
-     * Triggered via $event.
-     *
-     * @param \core\event\user_created $event The event.
-     * @return bool True on success.
-     */
-    public static function user_created($event) {
-
-        // For more information about the Events API please visit {@link https://docs.moodle.org/dev/Events_API}.
-
-        return true;
-    }
-
-    /**
-     * Triggered via $event.
-     *
-     * @param \core\event\user_updated $event The event.
-     * @return bool True on success.
-     */
-    public static function user_updated($event) {
-
-        // For more information about the Events API please visit {@link https://docs.moodle.org/dev/Events_API}.
-
-        return true;
-    }
 }

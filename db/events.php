@@ -25,25 +25,9 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$observers = array(
-
-    array(
-        'eventname' => '\core\event\user_loggedin',
-        'callback' => '\tool_cohortmanager\observer::user_loggedin',
-    ),
-
-    array(
-        'eventname' => '\core\event\user_loggedinas',
-        'callback' => '\tool_cohortmanager\observer::user_loggedinas',
-    ),
-
-    array(
-        'eventname' => '\core\event\user_created',
-        'callback' => '\tool_cohortmanager\observer::user_created',
-    ),
-
-    array(
-        'eventname' => '\core\event\user_updated',
-        'callback' => '\tool_cohortmanager\observer::user_updated',
-    ),
-);
+$observers = [
+    [
+        'eventname' => '*',
+        'callback' => '\tool_cohortmanager\observer::process_event',
+    ],
+];

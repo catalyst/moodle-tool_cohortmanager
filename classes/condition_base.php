@@ -108,6 +108,15 @@ abstract class condition_base {
     }
 
     /**
+     * Gets a list of event classes the condition will be triggered on.
+     *
+     * @return array
+     */
+    public function get_events(): array {
+        return [];
+    }
+
+    /**
      * Returns the name of the condition
      *
      * @return string
