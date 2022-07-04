@@ -31,6 +31,10 @@ class match extends persistent {
     /** @var string table. */
     const TABLE = 'tool_cohortmanager_match';
 
+    const STATUS_MATCHING = 1;
+    const STATUS_UNMATCHING = 2;
+    const STATUS_ERROR = 3;
+
     /**
      * Return the definition of the properties of this model.
      *
