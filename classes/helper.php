@@ -331,4 +331,117 @@ class helper {
         static $cnt = 0;
         return 'tcmf' . ($cnt++);
     }
+
+    /**
+     * Returns a list of all matching users for provided rule.
+     *
+     * @param rule $rule A rule to get a list of users.
+     * @param int|null $userid Optional user ID if we need to check just one user.
+     *
+     * @return array
+     */
+    public static function get_matching_users(rule $rule, int $userid = null): array {
+        global $DB;
+
+        $conditionrecords = $rule->get_condition_records();
+
+        if (empty($conditionrecords)) {
+            return [];
+        }
+
+        $where = ' u.deleted = 0 ';
+        $join = '';
+        $params = [];
+
+        $sql = "SELECT DISTINCT u.id FROM {user} u";
+
+        foreach ($conditionrecords as $conditionrecord) {
+            $condition = condition_base::get_instance($conditionrecord->get('id'));
+            $sqldata = $condition->get_sql_data();
+
+            if (!empty($sqldata->get_join())) {
+                $join .= ' ' . $sqldata->get_join();
+            }
+
+            if (!empty($sqldata->get_where())) {
+                $where .= ' AND (' . $sqldata->get_where() . ')';
+            }
+
+            if (!empty($sqldata->get_params())) {
+                $params += $sqldata->get_params();
+            }
+        }
+
+        if ($userid) {
+            $userparam = self::generate_param_alias();
+            $where .= " AND u.id = :{$userparam} ";
+            $params += [$userparam => $userid];
+        }
+
+        return $DB->get_records_sql($sql . $join . ' WHERE ' . $where, $params);
+    }
+
+    /**
+     * Process a given rule.
+     *
+     * @param rule $rule A rule to process.
+     * @param int|null $userid Optional user ID for processing a rule just for a single user.
+     */
+    public static function process_rule(rule $rule, int $userid = null): void {
+        global $DB;
+
+        if (!$rule->is_enabled()) {
+            return;
+        }
+
+        if (!$DB->record_exists('cohort', ['id' => $rule->get('cohortid')])) {
+            // TODO: mark rule as broken and disable it
+            // issue https://github.com/catalyst/moodle-tool_cohortmanager/issues/15.
+            return;
+        }
+
+        $conditionrecords = $rule->get_condition_records();
+
+        if (empty($conditionrecords)) {
+            return;
+        }
+
+        $users = self::get_matching_users($rule, $userid);
+
+        $cohortmembersparams = ['cohortid' => $rule->get('cohortid')];
+        if (!empty($userid)) {
+            $cohortmembersparams['userid'] = $userid;
+        }
+
+        $cohortmembers = $DB->get_records('cohort_members', $cohortmembersparams, '', 'userid');
+
+        $userstoadd = array_diff_key($users, $cohortmembers);
+        $userstodelete = array_diff_key($cohortmembers, $users);
+
+        $currenttime = time();
+
+        foreach ($userstoadd as $user) {
+            $match = match::get_record(['ruleid' => $rule->get('id'), 'userid' => $user->id]);
+            if (!$match) {
+                $match = new match(0, (object)['ruleid' => $rule->get('id'), 'userid' => $user->id]);
+            }
+            $match->set('matchedtime', $currenttime);
+            $match->set('status', match::STATUS_MATCHING);
+            $match->save();
+
+            cohort_add_member($rule->get('cohortid'), $user->id);
+        }
+
+        foreach ($userstodelete as $user) {
+            $match = match::get_record(['ruleid' => $rule->get('id'), 'userid' => $user->userid]);
+            if ($match) {
+                $match->set('unmatchedtime', $currenttime);
+                $match->set('status', match::STATUS_UNMATCHING);
+                $match->save();
+            }
+
+            cohort_remove_member($rule->get('cohortid'), $user->userid);
+        }
+    }
+
 }
