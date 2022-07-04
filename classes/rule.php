@@ -16,7 +16,8 @@
 
 namespace tool_cohortmanager;
 
-use \core\persistent;
+use core\persistent;
+use cache_helper;
 
 /**
  * Rules persistent class.
@@ -80,4 +81,31 @@ class rule extends persistent {
         return $conditions;
     }
 
+    /**
+     * Hook after a condition is deleted.
+     *
+     * @param bool $result Whether or not the delete was successful.
+     * @return void
+     */
+    protected function after_delete($result): void {
+        if ($result) {
+            cache_helper::purge_by_event('ruleschanged');
+        }
+    }
+
+    /**
+     * Hook after created a rule.
+     */
+    protected function after_create() {
+        cache_helper::purge_by_event('ruleschanged');
+    }
+
+    /**
+     * Hook after updating a rule.
+     *
+     * @param bool $result
+     */
+    protected function after_update($result) {
+        cache_helper::purge_by_event('ruleschanged');
+    }
 }

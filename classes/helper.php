@@ -21,6 +21,8 @@ use core_component;
 use moodle_exception;
 use moodle_url;
 use tool_cohortmanager\output\renderer;
+use cache;
+use cache_helper;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -476,18 +478,29 @@ class helper {
     public static function get_rules_with_condition(condition_base $condition): array {
         global $DB;
 
-        $rules = [];
+        $classname = get_class($condition);
 
-        $sql = 'SELECT DISTINCT r.id
+        $cache = cache::make('tool_cohortmanager', 'rules');
+        $key = 'rules-conditions-' . $classname;
+
+        $rules = $cache->get($key);
+
+        if ($rules === false) {
+            $rules = [];
+
+            $sql = 'SELECT DISTINCT r.id
                       FROM {tool_cohortmanager} r
                       JOIN {tool_cohortmanager_cond} c ON c.ruleid = r.id
                      WHERE c.classname = ?
                        AND r.enabled = 1 ORDER BY r.id';
-        $params = [get_class($condition)];
-        $records = $DB->get_records_sql($sql, $params);
 
-        foreach ($records as $record) {
-            $rules[$record->id] = new rule($record->id);
+            $records = $DB->get_records_sql($sql, [$classname]);
+
+            foreach ($records as $record) {
+                $rules[$record->id] = new rule($record->id);
+            }
+
+            $cache->set($key, $rules);
         }
 
         return $rules;
