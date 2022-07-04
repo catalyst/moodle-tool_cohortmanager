@@ -63,7 +63,8 @@
         <KEY NAME="usermodified" TYPE="foreign" FIELDS="usermodified" REFTABLE="user" REFFIELDS="id"/>
       </KEYS>
       <INDEXES>
-        <INDEX NAME="ruleiduseridmatchedtime" UNIQUE="false" FIELDS="ruleid, userid, matchedtime"/>
+        <INDEX NAME="ruleiduserid" UNIQUE="true" FIELDS="ruleid, userid"/>
+        <INDEX NAME="ruleiduseridmatchedstatus" UNIQUE="false" FIELDS="ruleid, userid, status"/>
       </INDEXES>
     </TABLE>
   </TABLES>
