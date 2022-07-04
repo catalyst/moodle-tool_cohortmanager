@@ -99,6 +99,15 @@ abstract class condition_base {
     }
 
     /**
+     * Gets condition persistent record.
+     *
+     * @return condition
+     */
+    public function get_record(): condition {
+        return $this->condition;
+    }
+
+    /**
      * Returns the name of the condition
      *
      * @return string
