@@ -22,7 +22,6 @@ use moodle_exception;
 use moodle_url;
 use tool_cohortmanager\output\renderer;
 use cache;
-use cache_helper;
 
 defined('MOODLE_INTERNAL') || die();
 
