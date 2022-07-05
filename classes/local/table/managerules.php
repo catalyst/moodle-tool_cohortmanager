@@ -67,6 +67,7 @@ class managerules extends table_sql implements renderable {
             'name',
             'description',
             'cohort',
+            'users',
             'manage',
         ]);
 
@@ -74,6 +75,7 @@ class managerules extends table_sql implements renderable {
             get_string('name'),
             get_string('description'),
             get_string('cohort', 'cohort'),
+            get_string('matchingusers', 'tool_cohortmanager'),
             get_string('actions'),
         ]);
 
@@ -122,6 +124,16 @@ class managerules extends table_sql implements renderable {
         } else {
             return '-';
         }
+    }
+
+    /**
+     * Generate content for users column.
+     *
+     * @param rule $rule rule object
+     * @return string
+     */
+    public function col_users(rule $rule): string {
+        return number_format(count(helper::get_matching_users($rule)), 0, ',', ' ');
     }
 
     /**

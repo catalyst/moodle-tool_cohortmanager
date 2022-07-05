@@ -44,6 +44,7 @@ $string['enabled_help'] = 'Only enabled rules will be processed';
 $string['invalidfieldvalue'] = 'Invalid field value';
 $string['isnotempty'] = 'is not empty';
 $string['managerules'] = 'Manage dynamic cohort rules';
+$string['matchingusers'] = 'Matching users';
 $string['name'] = 'Rule name';
 $string['name_help'] = 'A human readable name of this rule.';
 $string['pleaseselectfield'] = 'Please select a field';
