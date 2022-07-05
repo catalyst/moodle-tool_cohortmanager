@@ -20,6 +20,9 @@ use core\event\base;
 use core_component;
 use moodle_exception;
 use moodle_url;
+use tool_cohortmanager\event\rule_created;
+use tool_cohortmanager\event\rule_deleted;
+use tool_cohortmanager\event\rule_updated;
 use tool_cohortmanager\output\renderer;
 use cache;
 
@@ -87,11 +90,13 @@ class helper {
             if (empty($formdata->id)) {
                 $rule = new rule(0, $ruledata);
                 $rule->create();
+                rule_created::create(['other' => ['ruleid' => $rule->get('id')]])->trigger();
             } else {
                 $rule = new rule($formdata->id);
                 $oldcohortid = $rule->get('cohortid');
                 $rule->from_record($ruledata);
                 $rule->update();
+                rule_updated::create(['other' => ['ruleid' => $rule->get('id')]])->trigger();
             }
 
             self::unmanage_cohort($oldcohortid);
@@ -207,6 +212,7 @@ class helper {
             $DB->delete_records(condition::TABLE, ['ruleid' => $oldid]);
             $DB->delete_records(match::TABLE, ['ruleid' => $oldid]);
             self::unmanage_cohort($rule->get('cohortid'));
+            rule_deleted::create(['other' => ['ruleid' => $oldid]])->trigger();
         }
     }
 

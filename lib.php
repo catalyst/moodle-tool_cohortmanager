@@ -25,6 +25,7 @@
 
 use core\output\inplace_editable;
 use tool_cohortmanager\rule;
+use tool_cohortmanager\event\rule_updated;
 use tool_cohortmanager\output\inplace_editable_rule_name;
 use tool_cohortmanager\output\inplace_editable_rule_description;
 use tool_cohortmanager\output\inplace_editable_rule_enabled;
@@ -50,17 +51,20 @@ function tool_cohortmanager_inplace_editable(string $itemtype, int $itemid, $new
             if (!empty($newvalue)) {
                 $rule->set('name', $newvalue);
                 $rule->save();
+                rule_updated::create(['other' => ['ruleid' => $rule->get('id')]])->trigger();
             }
             return new inplace_editable_rule_name($rule);
         case 'ruleenabled':
             $rule = rule::get_record(['id' => $itemid]);
             $rule->set('enabled', $newvalue);
             $rule->save();
+            rule_updated::create(['other' => ['ruleid' => $rule->get('id')]])->trigger();
             return new inplace_editable_rule_enabled($rule);
         case 'ruledescription':
             $rule = rule::get_record(['id' => $itemid]);
             $rule->set('description', $newvalue);
             $rule->save();
+            rule_updated::create(['other' => ['ruleid' => $rule->get('id')]])->trigger();
             return new inplace_editable_rule_description($rule);
     }
 
