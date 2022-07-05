@@ -20,6 +20,12 @@ use core\event\base;
 use core_component;
 use moodle_exception;
 use moodle_url;
+use tool_cohortmanager\event\condition_created;
+use tool_cohortmanager\event\condition_deleted;
+use tool_cohortmanager\event\condition_updated;
+use tool_cohortmanager\event\rule_created;
+use tool_cohortmanager\event\rule_deleted;
+use tool_cohortmanager\event\rule_updated;
 use tool_cohortmanager\output\renderer;
 use cache;
 
@@ -87,11 +93,13 @@ class helper {
             if (empty($formdata->id)) {
                 $rule = new rule(0, $ruledata);
                 $rule->create();
+                rule_created::create(['other' => ['ruleid' => $rule->get('id')]])->trigger();
             } else {
                 $rule = new rule($formdata->id);
                 $oldcohortid = $rule->get('cohortid');
                 $rule->from_record($ruledata);
                 $rule->update();
+                rule_updated::create(['other' => ['ruleid' => $rule->get('id')]])->trigger();
             }
 
             self::unmanage_cohort($oldcohortid);
@@ -150,6 +158,7 @@ class helper {
                 if (empty($condition->get('id'))) {
                     $condition->set('ruleid', $rule->get('id'));
                     $condition->create();
+                    self::trigger_condition_event(condition_created::class, $condition, []);
                 } else {
                     $toupdate[$condition->get('id')] = $condition;
                 }
@@ -159,10 +168,23 @@ class helper {
 
             foreach ($todelete as $conditiontodelete) {
                 $conditiontodelete->delete();
+                self::trigger_condition_event(condition_deleted::class, $conditiontodelete, []);
             }
 
             foreach ($toupdate as $conditiontoupdate) {
+                $olddescription = $conditiontoupdate->get('configdata');
+                $instance = condition_base::get_instance($conditiontoupdate->get('id'));
+                if ($instance) {
+                    $olddescription = $instance->get_config_description();
+                }
+
                 $conditiontoupdate->save();
+
+                self::trigger_condition_event(condition_updated::class, $conditiontoupdate, [
+                    'other' => [
+                        'olddescription' => $olddescription,
+                    ],
+                ]);
             }
         }
     }
@@ -201,13 +223,53 @@ class helper {
     public static function delete_rule(rule $rule) {
         global $DB;
 
-        $oldid = $rule->get('id');
+        $oldruleid = $rule->get('id');
+        $conditions = $rule->get_condition_records();
 
         if ($rule->delete()) {
-            $DB->delete_records(condition::TABLE, ['ruleid' => $oldid]);
-            $DB->delete_records(match::TABLE, ['ruleid' => $oldid]);
+            rule_deleted::create(['other' => ['ruleid' => $oldruleid]])->trigger();
+
+            // Delete related condition in a loop to be able to trigger events.
+            foreach ($conditions as $condition) {
+                $condition->delete();
+                self::trigger_condition_event(condition_deleted::class, $condition, [
+                    'other' => [
+                        'ruleid' => $oldruleid
+                    ],
+                ]);
+            }
+
+            $DB->delete_records(match::TABLE, ['ruleid' => $oldruleid]);
             self::unmanage_cohort($rule->get('cohortid'));
         }
+    }
+
+    /**
+     * Trigger condition related event.
+     *
+     * @param string $eventclass Full event class name, e.g. \tool_cohortmanager\event\condition_updated.
+     * @param condition $condition Related condition object.
+     * @param array $data Event related data.
+     */
+    protected static function trigger_condition_event(string $eventclass, condition $condition, array $data): void {
+        $instance = condition_base::get_instance($condition->get('id'), $condition->to_record());
+
+        if (!isset($data['other']['ruleid'])) {
+            $data['other']['ruleid'] = $condition->get('ruleid');
+        }
+
+        // In case that the class related to that condition is not found,
+        // we use data that we know about that condition such as class name and raw config.
+        if (!$instance) {
+            $data['other']['name'] = $condition->get('classname');
+            $data['other']['description'] = $condition->get('configdata');
+        } else {
+            $data['other']['name'] = $instance->get_name();
+            $data['other']['description'] = $instance->get_config_description();
+
+        }
+
+        $eventclass::create($data)->trigger();
     }
 
     /**
