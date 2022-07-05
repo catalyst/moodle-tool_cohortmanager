@@ -57,7 +57,7 @@ class rule_created extends base {
      * @return string
      */
     public function get_description(): string {
-        return "User: '{$this->userid}' created a dynamic cohort rule with ID '{$this->other['ruleid']}'";
+        return "User with id '{$this->userid}' created a dynamic cohort rule with id '{$this->other['ruleid']}'";
     }
 
     /**
