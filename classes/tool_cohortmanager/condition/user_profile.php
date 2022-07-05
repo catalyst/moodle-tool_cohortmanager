@@ -123,7 +123,7 @@ class user_profile extends condition_base {
     }
 
     /**
-     * Gets required config data form submitted condition form data.
+     * Gets required config data from submitted condition form data.
      *
      * @param \stdClass $formdata
      * @return array
@@ -388,7 +388,7 @@ class user_profile extends condition_base {
             $result = $this->get_menu_sql_data($ud, $dbfieldname);
         }
 
-        // If custom profile filed we need to JOIN on extra tables as data is stored in user_info_data
+        // If custom profile field we need to JOIN on extra tables as data is stored in user_info_data
         // and fields information is in user_info_field.
         if ($iscustomfield && !empty($result->get_params())) {
             $userinfofield = helper::generate_table_alias();
