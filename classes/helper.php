@@ -336,11 +336,11 @@ class helper {
      * Returns a list of all matching users for provided rule.
      *
      * @param rule $rule A rule to get a list of users.
-     * @param int|null $userid Optional user ID if we need to check just one user.
+     * @param ?int $userid Optional user ID if we need to check just one user.
      *
      * @return array
      */
-    public static function get_matching_users(rule $rule, int $userid = null): array {
+    public static function get_matching_users(rule $rule, ?int $userid = null): array {
         global $DB;
 
         $conditionrecords = $rule->get_condition_records();
@@ -385,9 +385,9 @@ class helper {
      * Process a given rule.
      *
      * @param rule $rule A rule to process.
-     * @param int|null $userid Optional user ID for processing a rule just for a single user.
+     * @param ?int $userid Optional user ID for processing a rule just for a single user.
      */
-    public static function process_rule(rule $rule, int $userid = null): void {
+    public static function process_rule(rule $rule, ?int $userid = null): void {
         global $DB;
 
         if (!$rule->is_enabled()) {
