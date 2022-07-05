@@ -14,50 +14,41 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace tool_cohortmanager;
+namespace tool_cohortmanager\task;
 
-use \core\persistent;
+use core\task\manager;
+use core\task\scheduled_task;
+use tool_cohortmanager\rule;
 
 /**
- * User match persistent class.
+ * Processing rules.
  *
  * @package    tool_cohortmanager
  * @author     Dmitrii Metelkin <dmitriim@catalyst-au.net>
  * @copyright  2022 Catalyst IT
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class match extends persistent {
-
-    /** @var string table. */
-    const TABLE = 'tool_cohortmanager_match';
-
-    const STATUS_MATCHING = 1;
-    const STATUS_UNMATCHING = 2;
-    const STATUS_ERROR = 3;
+class process_rules extends scheduled_task {
 
     /**
-     * Return the definition of the properties of this model.
-     *
-     * @return array
+     * Task name.
      */
-    protected static function define_properties() {
-        return [
-            'ruleid' => [
-                'type' => PARAM_INT,
-            ],
-            'userid' => [
-                'type' => PARAM_INT,
-            ],
-            'matchedtime' => [
-                'type' => PARAM_INT,
-            ],
-            'unmatchedtime' => [
-                'type' => PARAM_INT,
-                'default' => 0,
-            ],
-            'status' => [
-                'type' => PARAM_INT,
-            ],
-        ];
+    public function get_name() {
+        return get_string('processrulestask', 'tool_cohortmanager');
     }
+
+    /**
+     * Task execution.
+     */
+    public function execute() {
+        $rules = rule::get_records(['enabled' => 1], 'id');
+
+        foreach ($rules as $rule) {
+            $adhoctask = new process_rule();
+            $adhoctask->set_custom_data($rule->get('id'));
+            $adhoctask->set_component('tool_cohortmanager');
+            manager::queue_adhoc_task($adhoctask, true);
+        }
+    }
+
 }

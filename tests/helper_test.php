@@ -19,6 +19,7 @@ namespace tool_cohortmanager;
 use advanced_testcase;
 use moodle_url;
 use moodle_exception;
+use tool_cohortmanager\tool_cohortmanager\condition\user_profile;
 
 /**
  * Unit tests for helper class.
@@ -353,7 +354,6 @@ class helper_test extends advanced_testcase {
 
         $this->assertSame(0, $DB->count_records(rule::TABLE));
         $this->assertSame(0, $DB->count_records(condition::TABLE));
-        $this->assertSame(0, $DB->count_records(match::TABLE));
 
         $cohort = $this->getDataGenerator()->create_cohort();
 
@@ -496,6 +496,53 @@ class helper_test extends advanced_testcase {
         $this->assertFalse(condition::record_exists_select('classname = ? AND ruleid = ?', ['class2', $rule->get('id')]));
         $this->assertTrue(condition::record_exists_select('classname = ? AND ruleid = ?', ['class32', $rule->get('id')]));
         $this->assertTrue(condition::record_exists_select('classname = ? AND ruleid = ?', ['class4', $rule->get('id')]));
+    }
+
+    /**
+     * Very basic test of processing a rule.
+     */
+    public function test_process_rule() {
+        global $DB;
+
+        $this->resetAfterTest();
+
+        $cohort = $this->getDataGenerator()->create_cohort();
+
+        $user1 = $this->getDataGenerator()->create_user(['username' => 'user1']);
+        $user2 = $this->getDataGenerator()->create_user(['username' => 'user2']);
+
+        $this->assertEquals(0, $DB->count_records('cohort_members', ['cohortid' => $cohort->id]));
+
+        // Initially user 2 is as cohort member.
+        cohort_add_member($cohort->id, $user2->id);
+        $this->assertEquals(0, $DB->count_records('cohort_members', ['cohortid' => $cohort->id, 'userid' => $user1->id]));
+        $this->assertEquals(1, $DB->count_records('cohort_members', ['cohortid' => $cohort->id, 'userid' => $user2->id]));
+
+        // Create a rule with one condition.
+        $rule = new rule(0, (object)['name' => 'Test rule 1', 'enabled' => 1, 'cohortid' => $cohort->id]);
+        $rule->save();
+
+        $condition = condition_base::get_instance(0, (object)[
+            'classname' => '\tool_cohortmanager\tool_cohortmanager\condition\user_profile'
+        ]);
+
+        // Condition username = user1.
+        $condition->set_configdata([
+            'profilefield' => 'username',
+            'username_operator' => user_profile::TEXT_IS_EQUAL_TO,
+            'username_value' => 'user1',
+        ]);
+
+        $record = $condition->get_record();
+        $record->set('ruleid', $rule->get('id'));
+        $record->set('position', 0);
+        $record->save();
+
+        helper::process_rule($rule);
+
+        // Now use 2 should be removed from the cohort and user 1 added as a member.
+        $this->assertEquals(1, $DB->count_records('cohort_members', ['cohortid' => $cohort->id, 'userid' => $user1->id]));
+        $this->assertEquals(0, $DB->count_records('cohort_members', ['cohortid' => $cohort->id, 'userid' => $user2->id]));
     }
 
 }

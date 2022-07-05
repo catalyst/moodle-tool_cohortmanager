@@ -61,3 +61,4 @@ $string['privacy:metadata:tool_cohortmanager_match:unmatchedtime'] = 'Timestamp 
 $string['privacy:metadata:tool_cohortmanager_match:userid'] = 'The ID of the user.';
 $string['privacy:metadata:tool_cohortmanager_match:usermodified'] = 'The ID of the user applied matching.';
 $string['profilefield'] = 'Profile field';
+$string['processrulestask'] = 'Process all rules';

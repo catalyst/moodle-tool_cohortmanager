@@ -66,7 +66,7 @@ class rule_form extends \moodleform {
             get_string ('enable'), [], [0, 1]);
         $mform->setType('tool_cohortmanager', PARAM_INT);
         $mform->addHelpButton('enabled', 'enabled', 'tool_cohortmanager');
-        $mform->setDefault('enabled', 1);
+        $mform->setDefault('enabled', 0);
 
         // Hidden text field for conditions JSON.
         $mform->addElement('hidden', 'conditionjson', '', ['id' => 'id_conditionjson']);

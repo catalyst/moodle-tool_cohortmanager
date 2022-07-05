@@ -14,50 +14,37 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace tool_cohortmanager;
+namespace tool_cohortmanager\task;
 
-use \core\persistent;
+use \core\task\adhoc_task;
+use moodle_exception;
+use tool_cohortmanager\helper;
+use tool_cohortmanager\rule;
 
 /**
- * User match persistent class.
+ * Processing a single rules.
  *
  * @package    tool_cohortmanager
  * @author     Dmitrii Metelkin <dmitriim@catalyst-au.net>
  * @copyright  2022 Catalyst IT
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class match extends persistent {
-
-    /** @var string table. */
-    const TABLE = 'tool_cohortmanager_match';
-
-    const STATUS_MATCHING = 1;
-    const STATUS_UNMATCHING = 2;
-    const STATUS_ERROR = 3;
+class process_rule extends adhoc_task {
 
     /**
-     * Return the definition of the properties of this model.
-     *
-     * @return array
+     * Task execution
      */
-    protected static function define_properties() {
-        return [
-            'ruleid' => [
-                'type' => PARAM_INT,
-            ],
-            'userid' => [
-                'type' => PARAM_INT,
-            ],
-            'matchedtime' => [
-                'type' => PARAM_INT,
-            ],
-            'unmatchedtime' => [
-                'type' => PARAM_INT,
-                'default' => 0,
-            ],
-            'status' => [
-                'type' => PARAM_INT,
-            ],
-        ];
+    public function execute() {
+        $ruleid = $this->get_custom_data();
+
+        try {
+            $rule = rule::get_record(['id' => $ruleid]);
+        } catch (moodle_exception $e) {
+            mtrace("Processing cohort manager rules: rule with ID  {$ruleid} is not found.");
+            return;
+        }
+
+        mtrace("Processing cohort manager rules: processing rule with id  {$ruleid}");
+        helper::process_rule($rule);
     }
 }
