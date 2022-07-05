@@ -239,7 +239,6 @@ class helper {
                 ]);
             }
 
-            $DB->delete_records(match::TABLE, ['ruleid' => $oldruleid]);
             self::unmanage_cohort($rule->get('cohortid'));
         }
     }
@@ -482,28 +481,11 @@ class helper {
         $userstoadd = array_diff_key($users, $cohortmembers);
         $userstodelete = array_diff_key($cohortmembers, $users);
 
-        $currenttime = time();
-
         foreach ($userstoadd as $user) {
-            $match = match::get_record(['ruleid' => $rule->get('id'), 'userid' => $user->id]);
-            if (!$match) {
-                $match = new match(0, (object)['ruleid' => $rule->get('id'), 'userid' => $user->id]);
-            }
-            $match->set('matchedtime', $currenttime);
-            $match->set('status', match::STATUS_MATCHING);
-            $match->save();
-
             cohort_add_member($rule->get('cohortid'), $user->id);
         }
 
         foreach ($userstodelete as $user) {
-            $match = match::get_record(['ruleid' => $rule->get('id'), 'userid' => $user->userid]);
-            if ($match) {
-                $match->set('unmatchedtime', $currenttime);
-                $match->set('status', match::STATUS_UNMATCHING);
-                $match->save();
-            }
-
             cohort_remove_member($rule->get('cohortid'), $user->userid);
         }
     }

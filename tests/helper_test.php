@@ -364,17 +364,12 @@ class helper_test extends advanced_testcase {
         $condition = new condition(0, (object)['ruleid' => $rule->get('id'), 'classname' => 'test', 'position' => 0]);
         $condition->save();
 
-        $match = new match(0, (object)['ruleid' => $rule->get('id'), 'userid' => 2, 'matchedtime' => time(), 'status' => 1]);
-        $match->save();
-
         $this->assertSame(1, $DB->count_records(rule::TABLE));
         $this->assertSame(1, $DB->count_records(condition::TABLE));
-        $this->assertSame(1, $DB->count_records(match::TABLE));
 
         helper::delete_rule($rule);
         $this->assertSame(0, $DB->count_records(rule::TABLE));
         $this->assertSame(0, $DB->count_records(condition::TABLE));
-        $this->assertSame(0, $DB->count_records(match::TABLE));
     }
 
     /**

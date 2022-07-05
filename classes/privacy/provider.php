@@ -64,18 +64,6 @@ class provider implements \core_privacy\local\metadata\provider,
             'privacy:metadata:tool_cohortmanager_cond'
         );
 
-        $collection->add_database_table(
-            'tool_cohortmanager_match',
-            [
-                'ruleid' => 'privacy:metadata:tool_cohortmanager_match:ruleid',
-                'userid' => 'privacy:metadata:tool_cohortmanager_match:userid',
-                'matchedtime' => 'privacy:metadata:tool_cohortmanager_match:matchedtime',
-                'unmatchedtime' => 'privacy:metadata:tool_cohortmanager_match:unmatchedtime',
-                'usermodified' => 'privacy:metadata:tool_cohortmanager_match:usermodified',
-            ],
-            'privacy:metadata:tool_cohortmanager_match'
-        );
-
         return $collection;
     }
 
@@ -97,9 +85,6 @@ class provider implements \core_privacy\local\metadata\provider,
             $contextlist->add_system_context();
         }
 
-        if ($DB->record_exists('tool_cohortmanager_match', ['userid' => $userid])) {
-            $contextlist->add_system_context();
-        }
         return $contextlist;
     }
 
@@ -120,9 +105,6 @@ class provider implements \core_privacy\local\metadata\provider,
 
         $sql = "SELECT usermodified FROM {tool_cohortmanager_cond}";
         $userlist->add_from_sql('usermodified', $sql, []);
-
-        $sql = "SELECT userid FROM {tool_cohortmanager_match}";
-        $userlist->add_from_sql('userid', $sql, []);
     }
 
     /**
@@ -177,32 +159,6 @@ class provider implements \core_privacy\local\metadata\provider,
 
             writer::with_context($context)->export_data($contextpath, (object) ['conditions' => $conditions]);
         }
-
-        // User matches.
-        $sql = 'SELECT m.*, r.name as rulename
-                  FROM {tool_cohortmanager_match} m
-                  JOIN {tool_cohortmanager} r ON (r.id = m.ruleid)
-                 WHERE m.userid = :userid
-              ORDER BY m.matchedtime, m.unmatchedtime, r.id ASC';
-
-        $matches = [];
-
-        $recordset = $DB->get_recordset_sql($sql, ['userid' => $user->id]);
-        foreach ($recordset as $record) {
-            $matches[] = [
-                'rulename' => format_string($record->rulename),
-                'matchedtime' => transform::datetime($record->matchedtime),
-                'unmatchedtime' => $record->unmatchedtime ? transform::datetime($record->unmatchedtime) : null,
-            ];
-        }
-        $recordset->close();
-
-        if (count($matches) > 0) {
-            $context = \context_system::instance();
-            $contextpath = [get_string('pluginname', 'tool_cohortmanager')];
-
-            writer::with_context($context)->export_data($contextpath, (object) ['matches' => $matches]);
-        }
     }
 
     /**
@@ -219,7 +175,6 @@ class provider implements \core_privacy\local\metadata\provider,
 
         $DB->set_field('tool_cohortmanager', 'usermodified', 0);
         $DB->set_field('tool_cohortmanager_cond', 'usermodified', 0);
-        $DB->delete_records('tool_cohortmanager_match');
     }
 
     /**
@@ -242,7 +197,6 @@ class provider implements \core_privacy\local\metadata\provider,
 
             $DB->set_field('tool_cohortmanager', 'usermodified', 0, ['usermodified' => $userid]);
             $DB->set_field('tool_cohortmanager_cond', 'usermodified', 0, ['usermodified' => $userid]);
-            $DB->delete_records('tool_cohortmanager_match', ['userid' => $userid]);
         }
     }
 
@@ -261,7 +215,6 @@ class provider implements \core_privacy\local\metadata\provider,
 
         $DB->set_field_select('tool_cohortmanager', 'usermodified', 0, ' usermodified ' . $userinsql, $userinparams);
         $DB->set_field_select('tool_cohortmanager_cond', 'usermodified', 0, ' usermodified ' . $userinsql, $userinparams);
-        $DB->delete_records_select('tool_cohortmanager_match', ' userid ' . $userinsql, $userinparams);
     }
 
 }
