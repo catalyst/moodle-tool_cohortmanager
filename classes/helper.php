@@ -16,10 +16,12 @@
 
 namespace tool_cohortmanager;
 
+use core\event\base;
 use core_component;
 use moodle_exception;
 use moodle_url;
 use tool_cohortmanager\output\renderer;
+use cache;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -442,6 +444,65 @@ class helper {
 
             cohort_remove_member($rule->get('cohortid'), $user->userid);
         }
+    }
+
+    /**
+     * Gets a list of conditions subscribed for the given event.
+     *
+     * @param \core\event\base $event Event.
+     * @return array
+     */
+    public static function get_conditions_with_event(base $event): array {
+        $conditionswithevent = [];
+
+        foreach (self::get_all_conditions() as $condition) {
+            $class = get_class($event);
+            foreach ($condition->get_events() as $eventclass) {
+                if (ltrim($class, '\\') === ltrim($eventclass, '\\')) {
+                    $conditionswithevent[] = $condition;
+                    break;
+                }
+            }
+        }
+
+        return $conditionswithevent;
+    }
+
+    /**
+     * Returns a list of rules with provided condition.
+     *
+     * @param \tool_cohortmanager\condition_base $condition Condition to check.
+     * @return rule[]
+     */
+    public static function get_rules_with_condition(condition_base $condition): array {
+        global $DB;
+
+        $classname = get_class($condition);
+
+        $cache = cache::make('tool_cohortmanager', 'rules');
+        $key = 'rules-conditions-' . $classname;
+
+        $rules = $cache->get($key);
+
+        if ($rules === false) {
+            $rules = [];
+
+            $sql = 'SELECT DISTINCT r.id
+                      FROM {tool_cohortmanager} r
+                      JOIN {tool_cohortmanager_cond} c ON c.ruleid = r.id
+                     WHERE c.classname = ?
+                       AND r.enabled = 1 ORDER BY r.id';
+
+            $records = $DB->get_records_sql($sql, [$classname]);
+
+            foreach ($records as $record) {
+                $rules[$record->id] = new rule($record->id);
+            }
+
+            $cache->set($key, $rules);
+        }
+
+        return $rules;
     }
 
 }

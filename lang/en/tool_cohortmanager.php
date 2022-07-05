@@ -28,6 +28,7 @@ defined('MOODLE_INTERNAL') || die();
 $string['addrule'] = 'Add a new rule';
 $string['addcondition'] = 'Add a condition';
 $string['add_breadcrumb'] = 'Add new rule';
+$string['cachedef_rules'] = 'Cohort manager rules cache.';
 $string['cohortmanager:managerules'] = 'Manage rules';
 $string['cohortid'] = 'Cohort';
 $string['cohortid_help'] = 'A cohort to manage as part of this rule. Only cohorts that are not managed by other plugins are displayed in this list.';

@@ -511,4 +511,16 @@ class user_profile extends condition_base {
         return new sql_data('', $where, $params);
     }
 
+    /**
+     * A list of events the condition is listening to.
+     *
+     * @return string[]
+     */
+    public function get_events(): array {
+        return [
+            '\core\event\user_created',
+            '\core\event\user_updated',
+        ];
+    }
+
 }

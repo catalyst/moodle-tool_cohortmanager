@@ -216,4 +216,14 @@ class user_profile_test extends \advanced_testcase {
         $this->assertCount(1, $DB->get_records_sql($sql, $result->get_params()));
     }
 
+    /**
+     * Test events that the condition is listening to.
+     */
+    public function test_get_events() {
+        $this->assertEquals([
+            '\core\event\user_created',
+            '\core\event\user_updated',
+        ], $this->get_condition()->get_events());
+    }
+
 }
