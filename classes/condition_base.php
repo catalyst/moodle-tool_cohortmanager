@@ -64,7 +64,7 @@ abstract class condition_base {
     }
 
     /**
-     * Gets required config data form submitted condition form data.
+     * Gets required config data from submitted condition form data.
      *
      * @param \stdClass $formdata Form data generated via $mform->get_data()
      * @return array

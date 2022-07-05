@@ -312,4 +312,23 @@ class helper {
         return $data;
     }
 
+    /**
+     * Generate an alias for prepending parameters in SQL.
+     *
+     * @return string
+     */
+    public static function generate_param_alias(): string {
+        static $cnt = 0;
+        return 'tcmp' . ($cnt++);
+    }
+
+    /**
+     * Generating an alias for tables in SQLs.
+     *
+     * @return string
+     */
+    public static function generate_table_alias(): string {
+        static $cnt = 0;
+        return 'tcmf' . ($cnt++);
+    }
 }
