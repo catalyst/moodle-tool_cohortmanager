@@ -433,7 +433,7 @@ class helper {
 
         $conditions = $rule->get_condition_records();
 
-        if (empty($conditions) || $rule->is_broken()) {
+        if (empty($conditions)) {
             return [];
         }
 
