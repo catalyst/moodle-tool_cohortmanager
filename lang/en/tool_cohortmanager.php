@@ -29,6 +29,7 @@ $string['addrule'] = 'Add a new rule';
 $string['addcondition'] = 'Add a condition';
 $string['add_breadcrumb'] = 'Add new rule';
 $string['broken'] = 'Broken';
+$string['brokenruleswarning'] = 'There are some broken rules require your attention.  <br /> To fix a broken rule you should remove all broken conditions. <br />Sometimes a rule becomes broken when matching users SQL failed. In this case all condition are ok, but the rule is marked as broken. You should check Moodle logs for "Matching users failed" event and related SQL errors. <br />Please note, that in any case you have to re-save the rule to mark it as unbroken.';
 $string['cachedef_rules'] = 'Cohort manager rules cache.';
 $string['cohortmanager:managerules'] = 'Manage rules';
 $string['cohortid'] = 'Cohort';

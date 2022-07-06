@@ -16,6 +16,7 @@
 
 namespace tool_cohortmanager\local\table;
 
+use core\notification;
 use tool_cohortmanager\helper;
 use tool_cohortmanager\output\inplace_editable_rule_description;
 use tool_cohortmanager\output\inplace_editable_rule_enabled;
@@ -145,7 +146,12 @@ class managerules extends table_sql implements renderable {
      * @return string
      */
     public function col_broken(rule $rule): string {
-        return $rule->is_broken() ? get_string('yes') : get_string('no');
+        if ($rule->is_broken()) {
+            notification::warning(get_string('brokenruleswarning', 'tool_cohortmanager'));
+            return get_string('yes');
+        }
+
+        return get_string('no');
     }
 
     /**
