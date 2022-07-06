@@ -44,6 +44,7 @@ class helper_test extends advanced_testcase {
         foreach ($conditions as $condition) {
             $this->assertFalse(is_null($condition));
             $this->assertTrue(is_subclass_of($condition, condition_base::class));
+            $this->assertFalse($condition->is_broken());
         }
     }
 
@@ -65,7 +66,6 @@ class helper_test extends advanced_testcase {
             [['name' => 'Test', 'enabled' => 1, 'description' => '', 'conditionjson' => '']],
             [['name' => 'Test', 'enabled' => 1, 'cohortid' => 1, 'conditionjson' => '']],
             [['name' => 'Test', 'enabled' => 1, 'cohortid' => 1, 'description' => '']],
-
         ];
     }
 
@@ -417,6 +417,7 @@ class helper_test extends advanced_testcase {
             'timemodified' => 0,
             'usermodified' => 0,
             'conditionjson' => '',
+            'broken' => 0,
         ];
 
         $this->assertEquals($expected, helper::build_rule_data_for_form($rule));
@@ -436,6 +437,11 @@ class helper_test extends advanced_testcase {
         // Creating rule without conditions.
         $formdata = ['name' => 'Test', 'enabled' => 1, 'cohortid' => $cohort->id, 'description' => '', 'conditionjson' => ''];
         $rule = helper::process_rule_form((object)$formdata);
+
+        // No conditions yet. Rule should be ok.
+        $this->assertFalse($rule->is_broken());
+        $this->assertTrue($rule->is_enabled());
+
         $this->assertEquals(1, $DB->count_records(rule::TABLE));
         $this->assertCount(0, $rule->get_condition_records());
 
@@ -452,12 +458,20 @@ class helper_test extends advanced_testcase {
         $this->assertEquals(1, $DB->count_records(rule::TABLE));
         $this->assertCount(0, $rule->get_condition_records());
 
+        // No conditions yet. Rule should be ok.
+        $this->assertFalse($rule->is_broken());
+        $this->assertTrue($rule->is_enabled());
+
         // Updating the rule with 3 new conditions. Expecting 3 new conditions to be created.
         $formdata = ['id' => $rule->get('id'), 'name' => 'Test', 'enabled' => 1, 'cohortid' => $cohort->id,
             'description' => '', 'conditionjson' => $conditionjson, 'isconditionschanged' => true];
         $rule = helper::process_rule_form((object)$formdata);
         $this->assertEquals(1, $DB->count_records(rule::TABLE));
         $this->assertCount(3, $rule->get_condition_records());
+
+        // Rule should be broken as all conditions are broken (not existing class).
+        $this->assertTrue($rule->is_broken());
+        $this->assertFalse($rule->is_enabled());
 
         $this->assertTrue(condition::record_exists_select('classname = ? AND ruleid = ?', ['class1', $rule->get('id')]));
         $this->assertTrue(condition::record_exists_select('classname = ? AND ruleid = ?', ['class2', $rule->get('id')]));
@@ -487,11 +501,23 @@ class helper_test extends advanced_testcase {
         $rule = helper::process_rule_form((object)$formdata);
         $this->assertEquals(1, $DB->count_records(rule::TABLE));
         $this->assertCount(3, $rule->get_condition_records());
+        $this->assertTrue($rule->is_broken());
+        $this->assertFalse($rule->is_enabled());
 
         $this->assertTrue(condition::record_exists_select('classname = ? AND ruleid = ?', ['class10', $rule->get('id')]));
         $this->assertFalse(condition::record_exists_select('classname = ? AND ruleid = ?', ['class2', $rule->get('id')]));
         $this->assertTrue(condition::record_exists_select('classname = ? AND ruleid = ?', ['class32', $rule->get('id')]));
         $this->assertTrue(condition::record_exists_select('classname = ? AND ruleid = ?', ['class4', $rule->get('id')]));
+
+        $formdata = ['id' => $rule->get('id'), 'name' => 'Test', 'enabled' => 1, 'cohortid' => $cohort->id,
+            'description' => '', 'conditionjson' => '', 'isconditionschanged' => true];
+        $rule = helper::process_rule_form((object)$formdata);
+        $this->assertEquals(1, $DB->count_records(rule::TABLE));
+        $this->assertCount(0, $rule->get_condition_records());
+
+        // Should be unbroken as all broken conditions are gone.
+        $this->assertFalse($rule->is_broken());
+        $this->assertTrue($rule->is_enabled());
     }
 
     /**
@@ -539,6 +565,42 @@ class helper_test extends advanced_testcase {
         // Now use 2 should be removed from the cohort and user 1 added as a member.
         $this->assertEquals(1, $DB->count_records('cohort_members', ['cohortid' => $cohort->id, 'userid' => $user1->id]));
         $this->assertEquals(0, $DB->count_records('cohort_members', ['cohortid' => $cohort->id, 'userid' => $user2->id]));
+    }
+
+    /**
+     * Test processing a rule with non existing cohort breaks the rule.
+     */
+    public function test_processing_rule_mark_rule_broken_if_cohort_does_not_exist() {
+        $this->resetAfterTest();
+
+        $rule = new rule(0, (object)['name' => 'Test rule 1', 'enabled' => 1, 'cohortid' => 7777]);
+        $rule->save();
+
+        $this->assertFalse($rule->is_broken());
+        $this->assertTrue($rule->is_enabled());
+
+        helper::process_rule($rule);
+        $this->assertTrue($rule->is_broken());
+        $this->assertFalse($rule->is_enabled());
+
+    }
+
+    /**
+     * Test processing a rule with broken condition breaks the rule.
+     */
+    public function test_processing_rule_mark_rule_broken_one_of_the_conditions_is_broken() {
+        $this->resetAfterTest();
+
+        $rule = new rule(0, (object)['name' => 'Test rule 1', 'enabled' => 1, 'cohortid' => 7777]);
+        $condition = new condition(0, (object)['ruleid' => $rule->get('id'), 'classname' => 'test', 'position' => 0]);
+        $condition->save();
+
+        $this->assertFalse($rule->is_broken());
+        $this->assertTrue($rule->is_enabled());
+
+        helper::process_rule($rule);
+        $this->assertTrue($rule->is_broken());
+        $this->assertFalse($rule->is_enabled());
     }
 
     /**
