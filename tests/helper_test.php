@@ -35,6 +35,20 @@ use cache;
 class helper_test extends advanced_testcase {
 
     /**
+     * Get condition instance for testing.
+     *
+     * @param string $classname Class name.
+     * @param array $configdata Config data to be set.
+     * @return condition_base
+     */
+    protected function get_condition(string $classname, array $configdata = []): condition_base {
+        $condition = condition_base::get_instance(0, (object)['classname' => $classname]);
+        $condition->set_configdata($configdata);
+
+        return $condition;
+    }
+
+    /**
      * Test all conditions.
      */
     public function test_get_all_conditions() {
@@ -405,7 +419,58 @@ class helper_test extends advanced_testcase {
      * Test building rule data for form.
      */
     public function test_build_rule_data_for_form() {
+        $this->resetAfterTest();
+
         $rule = new rule(0, (object)['name' => 'Test rule', 'cohortid' => 0, 'description' => 'Test description']);
+
+        $instance = $this->get_condition('tool_cohortmanager\tool_cohortmanager\condition\user_profile', [
+            'profilefield' => 'username',
+            'username_operator' => user_profile::TEXT_IS_EQUAL_TO,
+            'username_value' => 'user1',
+        ]);
+
+        $instance->get_record()->set('ruleid', $rule->get('id'));
+        $instance->get_record()->set('position', 0);
+        $instance->get_record()->save();
+
+        // Reloading condition to get exactly the same json string.
+        $condition = condition::get_record(['id' => $instance->get_record()->get('id')]);
+        $conditions[] = (array)$condition->to_record() +
+            ['description' => $instance->get_config_description()] +
+            ['name' => $instance->get_name()];
+
+        $expected = [
+            'name' => 'Test rule',
+            'enabled' => 0,
+            'broken' => 0,
+            'cohortid' => 0,
+            'description' => 'Test description',
+            'id' => 0,
+            'timecreated' => 0,
+            'timemodified' => 0,
+            'usermodified' => 0,
+            'conditionjson' => json_encode($conditions),
+        ];
+
+        $this->assertSame($expected, helper::build_rule_data_for_form($rule));
+    }
+
+    /**
+     * Test building rule data for form with broken rule.
+     */
+    public function test_build_rule_data_for_form_broken_conditions() {
+        $this->resetAfterTest();
+
+        $rule = new rule(0, (object)['name' => 'Test rule', 'cohortid' => 0, 'description' => 'Test description']);
+
+        $condition = new condition(0, (object)['ruleid' => $rule->get('id'), 'classname' => 'test', 'position' => 0]);
+        $condition->save();
+
+        // Reloading condition to get exactly the same json string.
+        $condition = condition::get_record(['id' => $condition->get('id')]);
+        $conditions[] = (array)$condition->to_record() +
+            ['description' => $condition->get('configdata')] +
+            ['name' => $condition->get('classname')];
 
         $expected = [
             'name' => 'Test rule',
@@ -416,7 +481,7 @@ class helper_test extends advanced_testcase {
             'timecreated' => 0,
             'timemodified' => 0,
             'usermodified' => 0,
-            'conditionjson' => '',
+            'conditionjson' => json_encode($conditions),
             'broken' => 0,
         ];
 
@@ -544,12 +609,7 @@ class helper_test extends advanced_testcase {
         $rule = new rule(0, (object)['name' => 'Test rule 1', 'enabled' => 1, 'cohortid' => $cohort->id]);
         $rule->save();
 
-        $condition = condition_base::get_instance(0, (object)[
-            'classname' => 'tool_cohortmanager\tool_cohortmanager\condition\user_profile'
-        ]);
-
-        // Condition username = user1.
-        $condition->set_configdata([
+        $condition = $this->get_condition('tool_cohortmanager\tool_cohortmanager\condition\user_profile', [
             'profilefield' => 'username',
             'username_operator' => user_profile::TEXT_IS_EQUAL_TO,
             'username_value' => 'user1',
@@ -582,7 +642,6 @@ class helper_test extends advanced_testcase {
         helper::process_rule($rule);
         $this->assertTrue($rule->is_broken());
         $this->assertFalse($rule->is_enabled());
-
     }
 
     /**
@@ -624,19 +683,19 @@ class helper_test extends advanced_testcase {
 
         $this->assertFalse( $cache->get($key));
 
-        $condition1 = condition_base::get_instance(0, (object)['classname' => $classname]);
+        $condition1 = $this->get_condition($classname);
         $record1 = $condition1->get_record();
         $record1->set('ruleid', $rule1->get('id'));
         $record1->set('position', 0);
         $record1->save();
 
-        $condition2 = condition_base::get_instance(0, (object)['classname' => $classname]);
+        $condition2 = $this->get_condition($classname);
         $record2 = $condition2->get_record();
         $record2->set('ruleid', $rule2->get('id'));
         $record2->set('position', 0);
         $record2->save();
 
-        $condition3 = condition_base::get_instance(0, (object)['classname' => $classname]);
+        $condition3 = $this->get_condition($classname);
         $record3 = $condition3->get_record();
         $record3->set('ruleid', $rule3->get('id'));
         $record3->set('position', 0);

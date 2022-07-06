@@ -380,17 +380,12 @@ class helper {
         foreach ($rule->get_condition_records() as $condition) {
             $instance = condition_base::get_instance(0, $condition->to_record());
 
-            if ($instance && !$instance->is_broken()) {
-                $description = $instance->get_config_description();
-                $name = $instance->get_name();
-            } else if ($instance->is_broken()) {
-                $description = $condition->get('configdata');
-                $name = $instance->get_name();
-                $rule->mark_broken();
-            } else {
-                $description = $condition->get('configdata');
+            if (!$instance) {
                 $name = $condition->get('classname');
-                $rule->mark_broken();
+                $description = $condition->get('configdata');
+            } else {
+                $name = $instance->get_name();
+                $description = $instance->is_broken() ? $condition->get('configdata') : $instance->get_config_description();
             }
 
             $conditions[] = (array)$condition->to_record() +
@@ -476,6 +471,7 @@ class helper {
             $params += [$userparam => $userid];
         }
 
+        // TODO: wrap in try catch.
         return $DB->get_records_sql($sql . $join . ' WHERE ' . $where, $params);
     }
 
