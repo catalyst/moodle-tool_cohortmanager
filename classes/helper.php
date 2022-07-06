@@ -273,16 +273,15 @@ class helper {
         // In case that the class related to that condition is not found,
         // we use data that we know about that condition such as class name and raw config.
         if (!$instance) {
-            $data['other']['name'] = $condition->get('classname');
-            $data['other']['description'] = $condition->get('configdata');
-        } else if ($instance->is_broken()) {
-            $data['other']['name'] = $instance->get_name();
-            $data['other']['description'] = $condition->get('configdata');
+            $name = $condition->get('classname');
+            $description = $condition->get('configdata');
         } else {
-            $data['other']['name'] = $instance->get_name();
-            $data['other']['description'] = $instance->get_config_description();
-
+            $name = $instance->get_name();
+            $description = $instance->is_broken() ? $condition->get('configdata') : $instance->get_config_description();
         }
+
+        $data['other']['name'] = $name;
+        $data['other']['description'] = $description;
 
         $eventclass::create($data)->trigger();
     }
