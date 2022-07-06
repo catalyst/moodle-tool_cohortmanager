@@ -18,6 +18,7 @@ namespace tool_cohortmanager;
 
 use core\persistent;
 use cache_helper;
+use cache;
 
 /**
  * Rules persistent class.
@@ -73,9 +74,16 @@ class rule extends persistent {
      * @return condition[]
      */
     public function get_condition_records(): array {
-        $conditions = [];
-        foreach (condition::get_records(['ruleid' => $this->get('id')], 'position') as $condition) {
-            $conditions[$condition->get('id')] = $condition;
+        $cache = cache::make('tool_cohortmanager', 'rules');
+        $key = 'condition-records-' . $this->get('id');
+        $conditions = $cache->get($key);
+
+        if ($conditions === false) {
+            $conditions = [];
+            foreach (condition::get_records(['ruleid' => $this->get('id')], 'position') as $condition) {
+                $conditions[$condition->get('id')] = $condition;
+            }
+            $cache->set($key, $conditions);
         }
 
         return $conditions;
