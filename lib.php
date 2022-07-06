@@ -56,9 +56,11 @@ function tool_cohortmanager_inplace_editable(string $itemtype, int $itemid, $new
             return new inplace_editable_rule_name($rule);
         case 'ruleenabled':
             $rule = rule::get_record(['id' => $itemid]);
-            $rule->set('enabled', $newvalue);
-            $rule->save();
-            rule_updated::create(['other' => ['ruleid' => $rule->get('id')]])->trigger();
+            if (!$rule->is_broken()) {
+                $rule->set('enabled', $newvalue);
+                $rule->save();
+                rule_updated::create(['other' => ['ruleid' => $rule->get('id')]])->trigger();
+            }
             return new inplace_editable_rule_enabled($rule);
         case 'ruledescription':
             $rule = rule::get_record(['id' => $itemid]);

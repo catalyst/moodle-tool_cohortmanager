@@ -226,4 +226,44 @@ class user_profile_test extends \advanced_testcase {
         ], $this->get_condition()->get_events());
     }
 
+    /**
+     * Test is broken.
+     */
+    public function test_is_broken() {
+        $condition = $this->get_condition();
+
+        // Not configured should be always valid.
+        $this->assertFalse($condition->is_broken());
+
+        $condition->set_configdata([
+            'profilefield' => 'username',
+            'username_operator' => user_profile::TEXT_IS_EMPTY,
+            'username_value' => '',
+        ]);
+        $this->assertFalse($condition->is_broken());
+
+        $condition->set_configdata([
+            'profilefield' => 'username',
+            'username_operator' => user_profile::TEXT_IS_NOT_EMPTY,
+            'username_value' => '',
+        ]);
+        $this->assertFalse($condition->is_broken());
+
+        // Break condition.
+        $condition->set_configdata([
+            'profilefield' => 'username',
+            'username_operator' => user_profile::TEXT_IS_EQUAL_TO,
+            'username_value' => '',
+        ]);
+        $this->assertTrue($condition->is_broken());
+
+        // Break condition.
+        $condition->set_configdata([
+            'profilefield' => 'notexisting',
+            'username_operator' => user_profile::TEXT_IS_EQUAL_TO,
+            'username_value' => '123',
+        ]);
+        $this->assertTrue($condition->is_broken());
+    }
+
 }

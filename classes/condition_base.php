@@ -153,4 +153,11 @@ abstract class condition_base {
      */
     abstract public function get_config_description(): string;
 
+    /**
+     * Indicate that condition is broken.
+     *
+     * @return bool
+     */
+    abstract public function is_broken(): bool;
+
 }

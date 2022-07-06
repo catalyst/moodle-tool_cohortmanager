@@ -16,6 +16,7 @@
 
 namespace tool_cohortmanager\local\table;
 
+use core\notification;
 use tool_cohortmanager\helper;
 use tool_cohortmanager\output\inplace_editable_rule_description;
 use tool_cohortmanager\output\inplace_editable_rule_enabled;
@@ -68,6 +69,7 @@ class managerules extends table_sql implements renderable {
             'description',
             'cohort',
             'users',
+            'broken',
             'manage',
         ]);
 
@@ -76,6 +78,7 @@ class managerules extends table_sql implements renderable {
             get_string('description'),
             get_string('cohort', 'cohort'),
             get_string('matchingusers', 'tool_cohortmanager'),
+            get_string('broken', 'tool_cohortmanager'),
             get_string('actions'),
         ]);
 
@@ -137,6 +140,21 @@ class managerules extends table_sql implements renderable {
     }
 
     /**
+     * Generate content for broken column.
+     *
+     * @param rule $rule rule object
+     * @return string
+     */
+    public function col_broken(rule $rule): string {
+        if ($rule->is_broken()) {
+            notification::warning(get_string('brokenruleswarning', 'tool_cohortmanager'));
+            return get_string('yes');
+        }
+
+        return get_string('no');
+    }
+
+    /**
      * Generate content for manage column.
      *
      * @param rule $rule rule object
@@ -169,6 +187,13 @@ class managerules extends table_sql implements renderable {
 
         $this->pagesize($pagesize, $total);
         $rules = rule::get_records([], 'name', 'ASC', $this->get_page_start(), $this->get_page_size());
+
+        // Make sure that we update rules before displaying.
+        foreach ($rules as $rule) {
+            if ($rule->is_broken(true)) {
+                $rule->mark_broken();
+            }
+        }
 
         // Sort disable to the bottom.
         usort($rules, function(rule $a, rule $b) {

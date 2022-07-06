@@ -64,7 +64,7 @@ class condition_form extends \moodleform {
         }
 
         if (!key_exists($this->_customdata['classname'], $conditions)) {
-            throw new moodle_exception('Invalid condition class');
+            throw new moodle_exception('Condition is broken. Invalid condition class.');
         }
 
         return $conditions[$this->_customdata['classname']];

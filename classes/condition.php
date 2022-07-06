@@ -18,7 +18,6 @@ namespace tool_cohortmanager;
 
 use core\persistent;
 use cache_helper;
-use tool_dynamicrule\outcome;
 
 /**
  * Conditions persistent class.

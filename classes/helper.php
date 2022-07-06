@@ -23,6 +23,7 @@ use moodle_url;
 use tool_cohortmanager\event\condition_created;
 use tool_cohortmanager\event\condition_deleted;
 use tool_cohortmanager\event\condition_updated;
+use tool_cohortmanager\event\matching_failed;
 use tool_cohortmanager\event\rule_created;
 use tool_cohortmanager\event\rule_deleted;
 use tool_cohortmanager\event\rule_updated;
@@ -60,7 +61,10 @@ class helper {
         foreach (array_keys($classes) as $class) {
             $reflectionclass = new \ReflectionClass($class);
             if (!$reflectionclass->isAbstract()) {
-                $instances[$class] = $class::get_instance();
+                $instance = $class::get_instance();
+                if (!$instance->is_broken()) {
+                    $instances[$class] = $class::get_instance();
+                }
             }
         }
 
@@ -106,6 +110,12 @@ class helper {
             self::manage_cohort($formdata->cohortid);
             self::process_rule_conditions($rule, $formdata);
 
+            if ($rule->is_broken(true)) {
+                $rule->mark_broken();
+            } else {
+                $rule->mark_unbroken();
+            }
+
             $transaction->allow_commit();
             return $rule;
         } catch (\Exception $exception) {
@@ -124,7 +134,7 @@ class helper {
         // we get only required fields to check form data against.
         $requiredfields = array_diff(
             array_keys(rule::properties_definition()),
-            ['id', 'usermodified', 'timecreated', 'timemodified']
+            ['id', 'broken', 'usermodified', 'timecreated', 'timemodified']
         );
 
         foreach ($requiredfields as $field) {
@@ -173,8 +183,8 @@ class helper {
 
             foreach ($toupdate as $conditiontoupdate) {
                 $olddescription = $conditiontoupdate->get('configdata');
-                $instance = condition_base::get_instance($conditiontoupdate->get('id'));
-                if ($instance) {
+                $instance = condition_base::get_instance(0, $conditiontoupdate->to_record());
+                if ($instance && !$instance->is_broken()) {
                     $olddescription = $instance->get_config_description();
                 }
 
@@ -202,10 +212,15 @@ class helper {
             ['ruleid', 'usermodified', 'timecreated', 'timemodified']
         );
 
-        // Filter out submitted conditions data to only fields required for condition persistent.
-        $submittedrecords = array_map(function (array $record) use ($requiredconditionfield): array {
-            return array_intersect_key($record, array_flip($requiredconditionfield));
-        }, json_decode($formjson, true));
+        $formjson = json_decode($formjson, true);
+        $submittedrecords = [];
+
+        if (is_array($formjson)) {
+            // Filter out submitted conditions data to only fields required for condition persistent.
+            $submittedrecords = array_map(function (array $record) use ($requiredconditionfield): array {
+                return array_intersect_key($record, array_flip($requiredconditionfield));
+            }, $formjson);
+        }
 
         $conditions = [];
         foreach ($submittedrecords as $submittedrecord) {
@@ -221,8 +236,6 @@ class helper {
      * @param \tool_cohortmanager\rule $rule
      */
     public static function delete_rule(rule $rule) {
-        global $DB;
-
         $oldruleid = $rule->get('id');
         $conditions = $rule->get_condition_records();
 
@@ -251,7 +264,7 @@ class helper {
      * @param array $data Event related data.
      */
     protected static function trigger_condition_event(string $eventclass, condition $condition, array $data): void {
-        $instance = condition_base::get_instance($condition->get('id'), $condition->to_record());
+        $instance = condition_base::get_instance(0, $condition->to_record());
 
         if (!isset($data['other']['ruleid'])) {
             $data['other']['ruleid'] = $condition->get('ruleid');
@@ -260,13 +273,15 @@ class helper {
         // In case that the class related to that condition is not found,
         // we use data that we know about that condition such as class name and raw config.
         if (!$instance) {
-            $data['other']['name'] = $condition->get('classname');
-            $data['other']['description'] = $condition->get('configdata');
+            $name = $condition->get('classname');
+            $description = $condition->get('configdata');
         } else {
-            $data['other']['name'] = $instance->get_name();
-            $data['other']['description'] = $instance->get_config_description();
-
+            $name = $instance->get_name();
+            $description = $instance->is_broken() ? $condition->get('configdata') : $instance->get_config_description();
         }
+
+        $data['other']['name'] = $name;
+        $data['other']['description'] = $description;
 
         $eventclass::create($data)->trigger();
     }
@@ -361,11 +376,21 @@ class helper {
         $data['conditionjson'] = '';
 
         $conditions = [];
-        foreach ($rule->get_condition_records() as $persistent) {
-            $condition = condition_base::get_instance($persistent->get('id'));
-            $conditions[] = (array)$persistent->to_record() +
-                ['description' => $condition->get_config_description()] +
-                ['name' => $condition->get_name()];
+
+        foreach ($rule->get_condition_records() as $condition) {
+            $instance = condition_base::get_instance(0, $condition->to_record());
+
+            if (!$instance) {
+                $name = $condition->get('classname');
+                $description = $condition->get('configdata');
+            } else {
+                $name = $instance->get_name();
+                $description = $instance->is_broken() ? $condition->get('configdata') : $instance->get_config_description();
+            }
+
+            $conditions[] = (array)$condition->to_record() +
+                ['description' => $description] +
+                ['name' => $name];
         }
 
         if (!empty($conditions)) {
@@ -406,9 +431,9 @@ class helper {
     public static function get_matching_users(rule $rule, ?int $userid = null): array {
         global $DB;
 
-        $conditionrecords = $rule->get_condition_records();
+        $conditions = $rule->get_condition_records();
 
-        if (empty($conditionrecords)) {
+        if (empty($conditions)) {
             return [];
         }
 
@@ -418,20 +443,37 @@ class helper {
 
         $sql = "SELECT DISTINCT u.id FROM {user} u";
 
-        foreach ($conditionrecords as $conditionrecord) {
-            $condition = condition_base::get_instance($conditionrecord->get('id'));
-            $sqldata = $condition->get_sql_data();
+        foreach ($conditions as $condition) {
+            try {
+                $instance = condition_base::get_instance(0, $condition->to_record());
 
-            if (!empty($sqldata->get_join())) {
-                $join .= ' ' . $sqldata->get_join();
-            }
+                if (!$instance || $instance->is_broken()) {
+                    return [];
+                }
 
-            if (!empty($sqldata->get_where())) {
-                $where .= ' AND (' . $sqldata->get_where() . ')';
-            }
+                $sqldata = $instance->get_sql_data();
 
-            if (!empty($sqldata->get_params())) {
-                $params += $sqldata->get_params();
+                if (!empty($sqldata->get_join())) {
+                    $join .= ' ' . $sqldata->get_join();
+                }
+
+                if (!empty($sqldata->get_where())) {
+                    $where .= ' AND (' . $sqldata->get_where() . ')';
+                }
+
+                if (!empty($sqldata->get_params())) {
+                    $params += $sqldata->get_params();
+                }
+            } catch (\Exception $exception ) {
+                matching_failed::create([
+                    'other' => [
+                        'ruleid' => $rule->get('id'),
+                        'error' => $exception->getMessage()
+                    ]
+                ])->trigger();
+
+                $rule->mark_broken();
+                return [];
             }
         }
 
@@ -441,7 +483,19 @@ class helper {
             $params += [$userparam => $userid];
         }
 
-        return $DB->get_records_sql($sql . $join . ' WHERE ' . $where, $params);
+        try {
+            return $DB->get_records_sql($sql . $join . ' WHERE ' . $where, $params);
+        } catch (\Exception $exception) {
+            matching_failed::create([
+                'other' => [
+                    'ruleid' => $rule->get('id'),
+                    'error' => $exception->getMessage()
+                ]
+            ])->trigger();
+
+            $rule->mark_broken();
+            return  [];
+        }
     }
 
     /**
@@ -453,19 +507,23 @@ class helper {
     public static function process_rule(rule $rule, ?int $userid = null): void {
         global $DB;
 
-        if (!$rule->is_enabled()) {
+        if (!$rule->is_enabled() || $rule->is_broken()) {
+            return;
+        }
+
+        if ($rule->is_broken(true)) {
+            $rule->mark_broken();
             return;
         }
 
         if (!$DB->record_exists('cohort', ['id' => $rule->get('cohortid')])) {
-            // TODO: mark rule as broken and disable it
-            // issue https://github.com/catalyst/moodle-tool_cohortmanager/issues/15.
+            $rule->mark_broken();
             return;
         }
 
-        $conditionrecords = $rule->get_condition_records();
+        $conditions = $rule->get_condition_records();
 
-        if (empty($conditionrecords)) {
+        if (empty($conditions)) {
             return;
         }
 
