@@ -46,6 +46,7 @@ $string['enabled_help'] = 'Only enabled rules will be processed';
 $string['event:conditioncreated'] = 'Condition created';
 $string['event:conditiondeleted'] = 'Condition deleted';
 $string['event:conditionupdated'] = 'Condition updated';
+$string['event:matchingfailed'] = 'Matching users failed';
 $string['event:rulecreated'] = 'Rule created';
 $string['event:ruleupdated'] = 'Rule updated';
 $string['event:ruledeleted'] = 'Rule deleted';

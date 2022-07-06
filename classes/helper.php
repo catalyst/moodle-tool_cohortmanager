@@ -23,6 +23,7 @@ use moodle_url;
 use tool_cohortmanager\event\condition_created;
 use tool_cohortmanager\event\condition_deleted;
 use tool_cohortmanager\event\condition_updated;
+use tool_cohortmanager\event\matching_failed;
 use tool_cohortmanager\event\rule_created;
 use tool_cohortmanager\event\rule_deleted;
 use tool_cohortmanager\event\rule_updated;
@@ -444,24 +445,36 @@ class helper {
         $sql = "SELECT DISTINCT u.id FROM {user} u";
 
         foreach ($conditions as $condition) {
-            $instance = condition_base::get_instance(0, $condition->to_record());
+            try {
+                $instance = condition_base::get_instance(0, $condition->to_record());
 
-            if (!$instance || $instance->is_broken()) {
+                if (!$instance || $instance->is_broken()) {
+                    return [];
+                }
+
+                $sqldata = $instance->get_sql_data();
+
+                if (!empty($sqldata->get_join())) {
+                    $join .= ' ' . $sqldata->get_join();
+                }
+
+                if (!empty($sqldata->get_where())) {
+                    $where .= ' AND (' . $sqldata->get_where() . ')';
+                }
+
+                if (!empty($sqldata->get_params())) {
+                    $params += $sqldata->get_params();
+                }
+            } catch (\Exception $exception ) {
+                matching_failed::create([
+                    'other' => [
+                        'ruleid' => $rule->get('id'),
+                        'error' => $exception->getMessage()
+                    ]
+                ])->trigger();
+
+                $rule->mark_broken();
                 return [];
-            }
-
-            $sqldata = $instance->get_sql_data();
-
-            if (!empty($sqldata->get_join())) {
-                $join .= ' ' . $sqldata->get_join();
-            }
-
-            if (!empty($sqldata->get_where())) {
-                $where .= ' AND (' . $sqldata->get_where() . ')';
-            }
-
-            if (!empty($sqldata->get_params())) {
-                $params += $sqldata->get_params();
             }
         }
 
@@ -471,8 +484,19 @@ class helper {
             $params += [$userparam => $userid];
         }
 
-        // TODO: wrap in try catch.
-        return $DB->get_records_sql($sql . $join . ' WHERE ' . $where, $params);
+        try {
+            return $DB->get_records_sql($sql . $join . ' WHERE ' . $where, $params);
+        } catch (\Exception $exception) {
+            matching_failed::create([
+                'other' => [
+                    'ruleid' => $rule->get('id'),
+                    'error' => $exception->getMessage()
+                ]
+            ])->trigger();
+
+            $rule->mark_broken();
+            return  [];
+        }
     }
 
     /**
