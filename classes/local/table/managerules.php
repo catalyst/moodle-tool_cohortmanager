@@ -145,7 +145,7 @@ class managerules extends table_sql implements renderable {
      * @return string
      */
     public function col_broken(rule $rule): string {
-        return $rule->is_broken(true) ? get_string('yes') : get_string('no');
+        return $rule->is_broken() ? get_string('yes') : get_string('no');
     }
 
     /**
@@ -181,6 +181,13 @@ class managerules extends table_sql implements renderable {
 
         $this->pagesize($pagesize, $total);
         $rules = rule::get_records([], 'name', 'ASC', $this->get_page_start(), $this->get_page_size());
+
+        // Make sure that we update rules before displaying.
+        foreach ($rules as $rule) {
+            if ($rule->is_broken(true)) {
+                $rule->mark_broken();
+            }
+        }
 
         // Sort disable to the bottom.
         usort($rules, function(rule $a, rule $b) {
