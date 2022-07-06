@@ -68,6 +68,7 @@ class managerules extends table_sql implements renderable {
             'description',
             'cohort',
             'users',
+            'broken',
             'manage',
         ]);
 
@@ -76,6 +77,7 @@ class managerules extends table_sql implements renderable {
             get_string('description'),
             get_string('cohort', 'cohort'),
             get_string('matchingusers', 'tool_cohortmanager'),
+            get_string('broken', 'tool_cohortmanager'),
             get_string('actions'),
         ]);
 
@@ -134,6 +136,16 @@ class managerules extends table_sql implements renderable {
      */
     public function col_users(rule $rule): string {
         return number_format(count(helper::get_matching_users($rule)), 0, ',', ' ');
+    }
+
+    /**
+     * Generate content for broken column.
+     *
+     * @param rule $rule rule object
+     * @return string
+     */
+    public function col_broken(rule $rule): string {
+        return $rule->is_broken(true) ? get_string('yes') : get_string('no');
     }
 
     /**

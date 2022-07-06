@@ -309,7 +309,7 @@ class user_profile extends condition_base {
      * @return string
      */
     private function get_field_text(): string {
-        return  $this->get_fields_info()[$this->get_field_name()]->name;
+        return $this->get_fields_info()[$this->get_field_name()]->name ?? '-';
     }
 
 
@@ -426,7 +426,7 @@ class user_profile extends condition_base {
         $fieldvalue = $this->get_field_value();
         $operatorvalue = $this->get_operator_value();
 
-        if ($fieldvalue === '' && $operatorvalue != self::TEXT_IS_EMPTY && $operatorvalue != self::TEXT_IS_NOT_EMPTY) {
+        if ($this->is_broken()) {
             return new sql_data('', '', []);
         }
 
@@ -489,7 +489,7 @@ class user_profile extends condition_base {
         $fieldvalue = $this->get_field_value();
         $operatorvalue = $this->get_operator_value();
 
-        if ($fieldvalue === '' && $operatorvalue != self::TEXT_IS_EMPTY && $operatorvalue != self::TEXT_IS_NOT_EMPTY) {
+        if ($this->is_broken()) {
             return new sql_data('', '', []);
         }
 
@@ -521,6 +521,27 @@ class user_profile extends condition_base {
             '\core\event\user_created',
             '\core\event\user_updated',
         ];
+    }
+
+    /**
+     * Is condition broken.
+     *
+     * @return bool
+     */
+    public function is_broken(): bool {
+        if ($this->get_configdata()) {
+            $configuredfield = $this->get_field_name();
+            $fieldvalue = $this->get_field_value();
+            $operatorvalue = $this->get_operator_value();
+
+            if ($fieldvalue === '' && $operatorvalue != self::TEXT_IS_EMPTY && $operatorvalue != self::TEXT_IS_NOT_EMPTY) {
+                return true;
+            }
+
+            return !key_exists($configuredfield, $this->get_fields_info());
+        }
+
+        return false;
     }
 
 }

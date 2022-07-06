@@ -28,6 +28,7 @@ defined('MOODLE_INTERNAL') || die();
 $string['addrule'] = 'Add a new rule';
 $string['addcondition'] = 'Add a condition';
 $string['add_breadcrumb'] = 'Add new rule';
+$string['broken'] = 'Broken';
 $string['cachedef_rules'] = 'Cohort manager rules cache.';
 $string['cohortmanager:managerules'] = 'Manage rules';
 $string['cohortid'] = 'Cohort';
