@@ -16,6 +16,8 @@
 
 namespace tool_cohortmanager;
 
+use cache;
+
 /**
  * Unit tests for rule persistent class.
  *
@@ -110,6 +112,45 @@ class rule_test extends \advanced_testcase {
         $rule->mark_unbroken();
         $this->assertFalse($rule->is_broken());
         $this->assertFalse($rule->is_enabled());
+    }
+
+    /**
+     * Test cache for condition records.
+     */
+    public function test_condition_records_get_cached() {
+        $this->resetAfterTest();
+
+        $cache = cache::make('tool_cohortmanager', 'rules');
+
+        $rule = new rule(0, (object)['name' => 'Test rule']);
+        $rule->save();
+        $key = 'condition-records-' . $rule->get('id');
+
+        $this->assertFalse($cache->get($key));
+
+        $this->assertEmpty($rule->get_condition_records());
+        $this->assertIsArray($cache->get($key));
+        $this->assertEquals([], $cache->get($key));
+
+        // Saving rule should purge the cache.
+        $rule->save();
+        $this->assertFalse($cache->get($key));
+
+        $condition1 = new condition(0, (object)['ruleid' => $rule->get('id'), 'classname' => 'test', 'position' => 0]);
+        $condition1->save();
+        $condition2 = new condition(0, (object)['ruleid' => $rule->get('id'), 'classname' => 'test', 'position' => 1]);
+        $condition2->save();
+
+        // Saving conditions should purge the cache.
+        $this->assertFalse($cache->get($key));
+
+        $expected = $rule->get_condition_records();
+
+        $this->assertCount(2, $expected);
+        $this->assertEquals($expected[$condition1->get('id')]->to_record(), $condition1->to_record());
+        $this->assertEquals($expected[$condition2->get('id')]->to_record(), $condition2->to_record());
+
+        $this->assertSame($expected, $cache->get($key));
     }
 
 }
