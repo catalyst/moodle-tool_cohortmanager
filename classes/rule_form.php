@@ -60,14 +60,6 @@ class rule_form extends \moodleform {
         $mform->addHelpButton('cohortid', 'cohortid', 'tool_cohortmanager');
         $mform->addRule('cohortid', get_string('required'), 'required');
 
-        $mform->addElement('advcheckbox',
-            'enabled',
-            get_string ('enabled', 'tool_cohortmanager'),
-            get_string ('enable'), [], [0, 1]);
-        $mform->setType('tool_cohortmanager', PARAM_INT);
-        $mform->addHelpButton('enabled', 'enabled', 'tool_cohortmanager');
-        $mform->setDefault('enabled', 0);
-
         // Hidden text field for conditions JSON.
         $mform->addElement('hidden', 'conditionjson', '', ['id' => 'id_conditionjson']);
         $mform->setType('conditionjson', PARAM_RAW_TRIMMED);
