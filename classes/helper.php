@@ -537,15 +537,10 @@ class helper {
             return;
         }
 
-        $conditions = $rule->get_condition_records();
-
-        if (empty($conditions)) {
-            return;
-        }
-
         $users = self::get_matching_users($rule, $userid);
 
         $cohortmembersparams = ['cohortid' => $rule->get('cohortid')];
+
         if (!empty($userid)) {
             $cohortmembersparams['userid'] = $userid;
         }
