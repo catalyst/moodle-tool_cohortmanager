@@ -300,7 +300,7 @@ class helper {
     public static function unmanage_cohort(int $cohortid): void {
         $cohorts = self::get_available_cohorts();
 
-        if (!empty($cohorts[$cohortid]) && !rule::record_exists_select('cohortid = ?', [$cohortid])) {
+        if (!empty($cohorts[$cohortid])) {
             $cohort = $cohorts[$cohortid];
             $cohort->component = '';
             cohort_update_cohort($cohort);
@@ -316,6 +316,11 @@ class helper {
         $cohorts = self::get_available_cohorts();
         if (!empty($cohorts[$cohortid])) {
             $cohort = $cohorts[$cohortid];
+
+            if ($cohort->component === self::COHORT_COMPONENT) {
+                throw new moodle_exception('Cohort ' . $cohortid . ' is already managed by tool_cohortmanager');
+            }
+
             $cohort->component = 'tool_cohortmanager';
             cohort_update_cohort($cohort);
         }
@@ -324,12 +329,13 @@ class helper {
     /**
      * Get a list of all cohort names in the system keyed by cohort ID.
      *
+     * @param bool $excludemanaged Exclude cohorts managed by us.
      * @return array
      */
-    public static function get_available_cohorts(): array {
+    public static function get_available_cohorts(bool $excludemanaged = false): array {
         $cohorts = [];
         foreach (\cohort_get_all_cohorts(0, 0)['cohorts'] as $cohort) {
-            if (empty($cohort->component) || $cohort->component == self::COHORT_COMPONENT) {
+            if (empty($cohort->component) || (!$excludemanaged && $cohort->component === self::COHORT_COMPONENT)) {
                 $cohorts[$cohort->id] = $cohort;
             }
         }

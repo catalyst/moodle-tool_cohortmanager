@@ -40,15 +40,19 @@ $manageurl = new moodle_url('/admin/tool/cohortmanager/index.php');
 $editurl = new moodle_url('/admin/tool/cohortmanager/edit.php');
 $PAGE->navbar->add(get_string($action . '_breadcrumb', 'tool_cohortmanager'));
 
-$mform = new rule_form();
 
 if (!empty($ruleid)) {
     $rule = rule::get_record(['id' => $ruleid]);
     if (empty($rule)) {
         throw new dml_missing_record_exception(null);
     } else {
+        $defaultcohort = $DB->get_record('cohort', ['id' => $rule->get('cohortid')]);
+        $url = new moodle_url('/admin/tool/cohortmanager/edit.php', ['ruleid' => $ruleid]);
+        $mform = new rule_form($url->out(), ['defaultcohort' => $defaultcohort ?: null]);
         $mform->set_data(helper::build_rule_data_for_form($rule));
     }
+} else {
+    $mform = new rule_form();
 }
 
 if ($mform->is_cancelled()) {
