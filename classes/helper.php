@@ -68,6 +68,11 @@ class helper {
             }
         }
 
+        // Sort conditions by name.
+        uasort($instances, function(condition_base $a, condition_base $b) {
+            return ($a->get_name() > $b->get_name());
+        });
+
         return $instances;
     }
 
