@@ -30,47 +30,18 @@ use tool_cohortmanager\condition_base;
 class user_profile_test extends \advanced_testcase {
 
     /**
-     * Get instance of user_profile for testing.
+     * Get condition instance for testing.
      *
+     * @param array $configdata Config data to be set.
      * @return condition_base
      */
-    protected function get_condition(): condition_base {
-        return condition_base::get_instance(0, (object)[
+    protected function get_condition(array $configdata = []): condition_base {
+        $condition = condition_base::get_instance(0, (object)[
             'classname' => '\tool_cohortmanager\tool_cohortmanager\condition\user_profile'
         ]);
-    }
+        $condition->set_configdata($configdata);
 
-    /**
-     * A helper function to create a custom profile field.
-     *
-     * @param string $shortname Short name of the field.
-     * @param string $datatype Type of the field, e.g. text, checkbox, datetime, menu and etc.
-     * @param array $extras A list of extra fields for the field (e.g. forceunique, param1 and etc)
-     *
-     * @return \stdClass
-     */
-    protected function add_user_profile_field(string $shortname, string $datatype, array $extras = []): \stdClass {
-        global $DB;
-
-        $data = new \stdClass();
-        $data->shortname = $shortname;
-        $data->datatype = $datatype;
-        $data->name = 'Test ' . $shortname;
-        $data->description = 'This is a test field';
-        $data->required = false;
-        $data->locked = false;
-        $data->forceunique = false;
-        $data->signup = false;
-        $data->visible = '0';
-        $data->categoryid = '0';
-
-        foreach ($extras as $name => $value) {
-            $data->{$name} = $value;
-        }
-
-        $DB->insert_record('user_info_field', $data);
-
-        return $data;
+        return $condition;
     }
 
     /**
@@ -100,14 +71,11 @@ class user_profile_test extends \advanced_testcase {
      * Test setting and getting config data.
      */
     public function test_set_and_get_configdata() {
-        $configdata = [
+        $instance = $this->get_condition([
             'profilefield' => 'firstname',
             'firstname_operator' => 3,
             'firstname_value' => 123,
-        ];
-
-        $instance = $this->get_condition();
-        $instance->set_configdata($configdata);
+        ]);
 
         $this->assertEquals(
             ['profilefield' => 'firstname',  'firstname_operator' => 3,  'firstname_value' => 123],
@@ -141,14 +109,11 @@ class user_profile_test extends \advanced_testcase {
      * @param string $expected
      */
     public function test_config_description(int $operator, string $expected) {
-        $configdata = [
+        $instance = $this->get_condition([
             'profilefield' => 'firstname',
             'firstname_operator' => $operator,
             'firstname_value' => '123',
-        ];
-
-        $instance = $this->get_condition();
-        $instance->set_configdata($configdata);
+        ]);
 
         $this->assertSame($expected, $instance->get_config_description());
     }
@@ -161,22 +126,13 @@ class user_profile_test extends \advanced_testcase {
 
         $this->resetAfterTest();
 
-        $field1 = $this->add_user_profile_field('field1', 'text');
-        $field2 = $this->add_user_profile_field('field2', 'text', ['param1' => "Opt 1\nOpt 2\nOpt 3"]);
+        $this->getDataGenerator()->create_user(['username' => 'user1username']);
+        $this->getDataGenerator()->create_user(['username' => 'user2username']);
 
-        $user1 = $this->getDataGenerator()->create_user(['username' => 'user1']);
-        profile_save_data((object)['id' => $user1->id, 'profile_field_' . $field1->shortname => 'User 1 Field 1']);
-        profile_save_data((object)['id' => $user1->id, 'profile_field_' . $field2->shortname => 'Opt 1']);
-
-        $user2 = $this->getDataGenerator()->create_user(['username' => 'user2']);
-        profile_save_data((object)['id' => $user2->id, 'profile_field_' . $field1->shortname => 'User 2 Field 1']);
-        profile_save_data((object)['id' => $user2->id, 'profile_field_' . $field2->shortname => 'Opt 2']);
-
-        $condition = $this->get_condition();
-        $condition->set_configdata([
+        $condition = $this->get_condition([
             'profilefield' => 'username',
             'username_operator' => user_profile::TEXT_IS_EQUAL_TO,
-            'username_value' => 'user1',
+            'username_value' => 'user1username',
         ]);
 
         $result = $condition->get_sql_data();
@@ -193,27 +149,26 @@ class user_profile_test extends \advanced_testcase {
         $sql = "SELECT u.id FROM {user} u {$result->get_join()} WHERE {$result->get_where()}";
         $this->assertCount(2, $DB->get_records_sql($sql, $result->get_params()));
 
-        $fieldname = 'profile_field_' . $field1->shortname;
         $condition->set_configdata([
-            'profilefield' => $fieldname,
-            $fieldname . '_operator' => user_profile::TEXT_ENDS_WITH,
-            $fieldname . '_value' => 'Field 1',
+            'profilefield' => 'username',
+            'username_operator' => user_profile::TEXT_ENDS_WITH,
+            'username_value' => 'username',
         ]);
 
         $result = $condition->get_sql_data();
         $sql = "SELECT u.id FROM {user} u {$result->get_join()} WHERE {$result->get_where()}";
         $this->assertCount(2, $DB->get_records_sql($sql, $result->get_params()));
 
-        $fieldname = 'profile_field_' . $field2->shortname;
         $condition->set_configdata([
-            'profilefield' => $fieldname,
-            $fieldname . '_operator' => user_profile::TEXT_IS_NOT_EQUAL_TO,
-            $fieldname . '_value' => 'Opt 1',
+            'profilefield' => 'username',
+            'username_operator' => user_profile::TEXT_IS_NOT_EQUAL_TO,
+            'username_value' => 'user1username',
         ]);
 
         $result = $condition->get_sql_data();
         $sql = "SELECT u.id FROM {user} u {$result->get_join()} WHERE {$result->get_where()}";
-        $this->assertCount(1, $DB->get_records_sql($sql, $result->get_params()));
+        $totalusers = $DB->count_records('user');
+        $this->assertCount($totalusers - 1, $DB->get_records_sql($sql, $result->get_params()));
     }
 
     /**

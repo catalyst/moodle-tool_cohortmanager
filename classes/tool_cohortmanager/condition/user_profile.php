@@ -48,13 +48,9 @@ class user_profile extends condition_base {
     /**
      * A list of supported default fields.
      */
-    private const SUPPORTED_STANDARD_FIELDS = ['auth', 'firstname', 'lastname', 'username', 'email',  'idnumber',
+    protected const SUPPORTED_STANDARD_FIELDS = ['auth', 'firstname', 'lastname', 'username', 'email',  'idnumber',
         'city', 'country', 'institution', 'department'];
 
-    /**
-     * A list of supported custom profile fields.
-     */
-    private const SUPPORTED_CUSTOM_FIELDS = ['text', 'menu'];
 
     /**
      * Condition name.
@@ -152,7 +148,7 @@ class user_profile extends condition_base {
      *
      * @return array A list of operators.
      */
-    private function get_text_operators() : array {
+    protected function get_text_operators() : array {
         return [
             self::TEXT_CONTAINS => get_string('contains', 'filters'),
             self::TEXT_DOES_NOT_CONTAIN => get_string('doesnotcontain', 'filters'),
@@ -170,7 +166,7 @@ class user_profile extends condition_base {
      *
      * @return array A list of operators.
      */
-    private function get_menu_operators() : array {
+    protected function get_menu_operators() : array {
         return [
             self::TEXT_IS_EQUAL_TO => get_string('isequalto', 'filters'),
             self::TEXT_IS_NOT_EQUAL_TO => get_string('isnotequalto', 'filters'),
@@ -182,11 +178,7 @@ class user_profile extends condition_base {
      *
      * @return \stdClass[]
      */
-    private function get_fields_info(): array {
-        global $CFG;
-
-        require_once($CFG->dirroot.'/user/profile/lib.php');
-
+    protected function get_fields_info(): array {
         $fields = [];
 
         foreach (self::SUPPORTED_STANDARD_FIELDS as $field) {
@@ -211,25 +203,6 @@ class user_profile extends condition_base {
             }
         }
 
-        foreach (profile_get_user_fields_with_data(0) as $customfield) {
-            if (!in_array($customfield->field->datatype, self::SUPPORTED_CUSTOM_FIELDS)) {
-                continue;
-            }
-
-            $field = (object)array_intersect_key((array)$customfield->field,
-                ['shortname' => 1, 'name' => 1, 'datatype' => 1, 'param1' => 1]);
-
-            if ($field->datatype == 'menu') {
-                $options = explode("\n", $field->param1);
-                $field->param1 = array_combine($options, $options);
-            } else if ($field->datatype == 'text') {
-                $field->paramtype = PARAM_TEXT;
-            }
-
-            $shortname = 'profile_field_' . $field->shortname;
-            $fields[$shortname] = $field;
-        }
-
         return $fields;
     }
 
@@ -241,7 +214,7 @@ class user_profile extends condition_base {
      * @param \stdClass $field Field info.
      * @param string $shortname A field shortname.
      */
-    private function add_text_field(\MoodleQuickForm $mform, array &$group, \stdClass $field, string $shortname): void {
+    protected function add_text_field(\MoodleQuickForm $mform, array &$group, \stdClass $field, string $shortname): void {
         $elements = [];
         $elements[] = $mform->createElement('select', $shortname . '_operator', null, $this->get_text_operators());
         $elements[] = $mform->createElement('text', $shortname . '_value', null);
@@ -261,7 +234,7 @@ class user_profile extends condition_base {
      * @param \stdClass $field Field info.
      * @param string $shortname A field shortname.
      */
-    private function add_menu_field(\MoodleQuickForm $mform, array &$group, \stdClass $field, string $shortname): void {
+    protected function add_menu_field(\MoodleQuickForm $mform, array &$group, \stdClass $field, string $shortname): void {
         $options = (array) $field->param1;
         $elements = [];
         $elements[] = $mform->createElement('select', $shortname . '_operator', null, $this->get_menu_operators());
@@ -278,7 +251,7 @@ class user_profile extends condition_base {
      *
      * @return string
      */
-    private function get_field_name(): string {
+    protected function get_field_name(): string {
         return $this->get_configdata()[self::FIELD_NAME];
     }
 
@@ -287,7 +260,7 @@ class user_profile extends condition_base {
      *
      * @return string|null
      */
-    private function get_field_value(): ?string {
+    protected function get_field_value(): ?string {
         $fieldvalue = null;
         $field = $this->get_field_name();
         $configdata = $this->get_configdata();
@@ -308,7 +281,7 @@ class user_profile extends condition_base {
      *
      * @return string
      */
-    private function get_field_text(): string {
+    protected function get_field_text(): string {
         return $this->get_fields_info()[$this->get_field_name()]->name ?? '-';
     }
 
@@ -318,7 +291,7 @@ class user_profile extends condition_base {
      *
      * @return int
      */
-    private function get_operator_value(): int {
+    protected function get_operator_value(): int {
         return $this->get_configdata()[$this->get_field_name() . '_operator'] ?? self::TEXT_IS_EQUAL_TO;
     }
 
@@ -328,7 +301,7 @@ class user_profile extends condition_base {
      * @param string $fielddatatype Field data type.
      * @return string
      */
-    private function get_operator_text(string $fielddatatype): string {
+    protected function get_operator_text(string $fielddatatype): string {
         if ($fielddatatype == self::FIELD_DATA_TYPE_TEXT) {
             return $this->get_text_operators()[$this->get_operator_value()];
         }
@@ -369,48 +342,18 @@ class user_profile extends condition_base {
     public function get_sql_data(): sql_data {
         $result = new sql_data('', '1=0', []);
 
-        $configuredfield = $this->get_field_name();
-        $datatype = $this->get_fields_info()[$configuredfield]->datatype;
+        $datatype = $this->get_fields_info()[$this->get_field_name()]->datatype;
 
-        if (in_array($configuredfield, self::SUPPORTED_STANDARD_FIELDS)) {
-            $iscustomfield = false;
-            $dbfieldname = $configuredfield;
-            $ud = 'u';
-        } else {
-            $iscustomfield = true;
-            $dbfieldname = 'data';
-            $ud = helper::generate_table_alias();
+        switch ($datatype) {
+            case self::FIELD_DATA_TYPE_TEXT:
+                $result = $this->get_text_sql_data('u', $this->get_field_name());
+                break;
+            case self::FIELD_DATA_TYPE_MENU:
+                $result = $this->get_menu_sql_data('u', $this->get_field_name());
+                break;
         }
 
-        if ($datatype == self::FIELD_DATA_TYPE_TEXT) {
-            $result = $this->get_text_sql_data($ud, $dbfieldname);
-        } else if ($datatype == self::FIELD_DATA_TYPE_MENU) {
-            $result = $this->get_menu_sql_data($ud, $dbfieldname);
-        }
-
-        // If custom profile field we need to JOIN on extra tables as data is stored in user_info_data
-        // and fields information is in user_info_field.
-        if ($iscustomfield && !empty($result->get_params())) {
-            $userinfofield = helper::generate_table_alias();
-            $userinfodata = helper::generate_table_alias();
-
-            $shortnameparam = helper::generate_param_alias();
-            $extrafields = "{$userinfodata}.data, {$userinfodata}.userid";
-
-            $join = "LEFT JOIN (SELECT $extrafields
-                                 FROM {user_info_data} $userinfodata
-                                 JOIN {user_info_field} $userinfofield
-                                   ON ({$userinfofield}.id = {$userinfodata}.fieldid
-                                      AND {$userinfofield}.shortname = :{$shortnameparam})) $ud
-                           ON ({$ud}.userid = u.id)";
-
-            $params = $result->get_params();
-            $params[$shortnameparam] = str_replace('profile_field_', '', $configuredfield);
-
-            $result = new sql_data($join, $result->get_where(), $params);
-        }
-
-        return  $result;
+        return $result;
     }
 
     /**
@@ -420,7 +363,7 @@ class user_profile extends condition_base {
      * @param string $fieldname Field name.
      * @return \tool_cohortmanager\sql_data
      */
-    private function get_text_sql_data(string $tablealias, string $fieldname): sql_data {
+    protected function get_text_sql_data(string $tablealias, string $fieldname): sql_data {
         global $DB;
 
         $fieldvalue = $this->get_field_value();
@@ -483,7 +426,7 @@ class user_profile extends condition_base {
      * @param string $fieldname Field name.
      * @return \tool_cohortmanager\sql_data
      */
-    private function get_menu_sql_data(string $tablealias, string $fieldname): sql_data {
+    protected function get_menu_sql_data(string $tablealias, string $fieldname): sql_data {
         global $DB;
 
         $fieldvalue = $this->get_field_value();
