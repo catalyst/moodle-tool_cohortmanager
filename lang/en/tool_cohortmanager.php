@@ -72,3 +72,4 @@ $string['privacy:metadata:tool_cohortmanager_cond:usermodified'] = 'The ID of th
 $string['profilefield'] = 'Profile field';
 $string['processrulestask'] = 'Process all rules';
 $string['ruledisabledpleasereview'] = 'Newly created or updated rules are disabled by default. Please review the rule below and enable it when ready.';
+$string['usersforrule'] = 'Users match rule "{$a}"';

@@ -142,7 +142,8 @@ class managerules extends table_sql implements renderable {
      * @return string
      */
     public function col_users(rule $rule): string {
-        return number_format(count(helper::get_matching_users($rule)), 0, ',', ' ');
+        $number = number_format(count(helper::get_matching_users($rule)), 0, ',', ' ');
+        return html_writer::link(helper::build_users_url($rule), $number);
     }
 
     /**
@@ -177,11 +178,11 @@ class managerules extends table_sql implements renderable {
 
         $editurl = helper::build_rule_edit_url($rule);
         $icon = $this->renderer->render(new \pix_icon('t/edit', get_string('edit')));
-        $manage .= html_writer::link($editurl, $icon, array('class' => 'action-icon'));
+        $manage .= html_writer::link($editurl, $icon, ['class' => 'action-icon']);
 
         $deleteurl = helper::build_rule_delete_url($rule);
         $icon = $this->renderer->render(new \pix_icon('t/delete', get_string('delete')));
-        $manage .= html_writer::link($deleteurl, $icon, array('class' => 'action-icon'));
+        $manage .= html_writer::link($deleteurl, $icon, ['class' => 'action-icon']);
 
         return $manage;
     }
