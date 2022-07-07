@@ -18,6 +18,7 @@ namespace tool_cohortmanager\output;
 
 use plugin_renderer_base;
 use tool_cohortmanager\local\table\managerules;
+use tool_cohortmanager\local\table\matchingusers;
 
 /**
  * Renderer class.
@@ -38,6 +39,21 @@ class renderer extends plugin_renderer_base {
     public function render_managerules(managerules $rules): string {
         ob_start();
         $rules->out($rules->pagesize, true);
+        $html = ob_get_contents();
+        ob_end_clean();
+
+        return $html;
+    }
+
+    /**
+     * Render matching users table.
+     *
+     * @param matchingusers $users
+     * @return string
+     */
+    public function render_matchingusers(matchingusers $users): string {
+        ob_start();
+        $users->out($users->pagesize, true);
         $html = ob_get_contents();
         ob_end_clean();
 

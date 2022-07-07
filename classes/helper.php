@@ -356,6 +356,16 @@ class helper {
     }
 
     /**
+     * Builds URL to see matching users.
+     *
+     * @param rule $rule Rule instance.
+     * @return moodle_url
+     */
+    public static function build_users_url(rule $rule): moodle_url {
+        return new moodle_url('/admin/tool/cohortmanager/users.php', ['ruleid' => $rule->get('id')]);
+    }
+
+    /**
      * Returns plugin render.
      *
      * @return renderer
