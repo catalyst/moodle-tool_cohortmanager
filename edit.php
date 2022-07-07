@@ -57,6 +57,7 @@ if ($mform->is_cancelled()) {
     try {
         helper::process_rule_form($formdata);
         notification::success(get_string('changessaved'));
+        notification::warning(get_string('ruledisabledpleasereview', 'tool_cohortmanager'));
     } catch (Exception $e) {
         notification::error($e->getMessage());
     }

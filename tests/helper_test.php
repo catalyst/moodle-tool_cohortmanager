@@ -107,7 +107,7 @@ class helper_test extends advanced_testcase {
 
         $cohort = $this->getDataGenerator()->create_cohort();
 
-        $formdata = ['name' => 'Test', 'enabled' => 1, 'cohortid' => $cohort->id, 'description' => '', 'conditionjson' => ''];
+        $formdata = ['name' => 'Test', 'cohortid' => $cohort->id, 'description' => '', 'conditionjson' => ''];
 
         $rule = helper::process_rule_form((object)$formdata);
         $this->assertEquals(1, $DB->count_records(rule::TABLE));
@@ -118,7 +118,7 @@ class helper_test extends advanced_testcase {
             $this->assertEquals($value, $rule->get($field));
         }
 
-        $formdata = ['name' => 'Test', 'enabled' => 1, 'cohortid' => $cohort->id, 'description' => '', 'conditionjson' => ''];
+        $formdata = ['name' => 'Test', 'cohortid' => $cohort->id, 'description' => '', 'conditionjson' => ''];
         $rule = helper::process_rule_form((object)$formdata);
         $this->assertEquals(2, $DB->count_records(rule::TABLE));
 
@@ -129,7 +129,7 @@ class helper_test extends advanced_testcase {
         }
 
         $cohort = $this->getDataGenerator()->create_cohort();
-        $formdata = ['name' => 'Test1', 'enabled' => 1, 'cohortid' => $cohort->id, 'description' => '', 'conditionjson' => ''];
+        $formdata = ['name' => 'Test1', 'cohortid' => $cohort->id, 'description' => '', 'conditionjson' => ''];
         $rule = helper::process_rule_form((object)$formdata);
         $this->assertEquals(3, $DB->count_records(rule::TABLE));
 
@@ -150,7 +150,7 @@ class helper_test extends advanced_testcase {
         $this->assertEquals(0, $DB->count_records(rule::TABLE));
 
         $cohort = $this->getDataGenerator()->create_cohort();
-        $formdata = ['name' => 'Test', 'enabled' => 1, 'cohortid' => $cohort->id, 'description' => ''];
+        $formdata = ['name' => 'Test', 'cohortid' => $cohort->id, 'description' => ''];
         $rule = new rule(0, (object)$formdata);
         $rule->create();
 
@@ -161,7 +161,7 @@ class helper_test extends advanced_testcase {
         }
 
         $cohort = $this->getDataGenerator()->create_cohort();
-        $formdata = ['id' => $rule->get('id'), 'name' => 'Test1', 'enabled' => 0, 'cohortid' => $cohort->id,
+        $formdata = ['id' => $rule->get('id'), 'name' => 'Test1', 'cohortid' => $cohort->id,
             'description' => 'D', 'conditionjson' => ''];
         $rule = helper::process_rule_form((object)$formdata);
         $this->assertEquals(1, $DB->count_records(rule::TABLE));
@@ -180,7 +180,7 @@ class helper_test extends advanced_testcase {
         $this->expectException(moodle_exception::class);
         $this->expectExceptionMessage('Invalid rule data. Cohort is invalid: 999');
 
-        $formdata = ['name' => 'Test', 'enabled' => 1, 'cohortid' => 999, 'description' => '', 'conditionjson' => ''];
+        $formdata = ['name' => 'Test', 'cohortid' => 999, 'description' => '', 'conditionjson' => ''];
         helper::process_rule_form((object)$formdata);
     }
 
@@ -194,7 +194,7 @@ class helper_test extends advanced_testcase {
         $this->expectException(moodle_exception::class);
         $this->expectExceptionMessage('Invalid rule data. Cohort is invalid: ' . $cohort->id);
 
-        $formdata = ['name' => 'Test', 'enabled' => 1, 'cohortid' => $cohort->id, 'description' => '', 'conditionjson' => ''];
+        $formdata = ['name' => 'Test', 'cohortid' => $cohort->id, 'description' => '', 'conditionjson' => ''];
         helper::process_rule_form((object)$formdata);
     }
 
@@ -208,7 +208,7 @@ class helper_test extends advanced_testcase {
         $this->expectException(moodle_exception::class);
         $this->expectExceptionMessage('Invalid rule data. Missing condition data.');
 
-        $formdata = ['name' => 'Test', 'enabled' => 1, 'cohortid' => $cohort->id, 'description' => ''];
+        $formdata = ['name' => 'Test', 'cohortid' => $cohort->id, 'description' => ''];
         helper::process_rule_form((object)$formdata);
     }
 
@@ -316,7 +316,7 @@ class helper_test extends advanced_testcase {
         $cohort = $this->getDataGenerator()->create_cohort();
         $this->assertEquals('', $DB->get_field('cohort', 'component', ['id' => $cohort->id]));
 
-        $formdata = ['name' => 'Test1', 'enabled' => 0, 'cohortid' => $cohort->id, 'description' => 'D', 'conditionjson' => ''];
+        $formdata = ['name' => 'Test1', 'cohortid' => $cohort->id, 'description' => 'D', 'conditionjson' => ''];
         helper::process_rule_form((object)$formdata);
         $this->assertEquals('tool_cohortmanager', $DB->get_field('cohort', 'component', ['id' => $cohort->id]));
     }
@@ -334,25 +334,25 @@ class helper_test extends advanced_testcase {
         $this->assertEquals('', $DB->get_field('cohort', 'component', ['id' => $cohort1->id]));
         $this->assertEquals('', $DB->get_field('cohort', 'component', ['id' => $cohort2->id]));
 
-        $formdata = ['name' => 'Test1', 'enabled' => 0, 'cohortid' => $cohort1->id, 'description' => 'D', 'conditionjson' => ''];
+        $formdata = ['name' => 'Test1', 'cohortid' => $cohort1->id, 'description' => 'D', 'conditionjson' => ''];
         $rule1 = helper::process_rule_form((object)$formdata);
         $this->assertEquals('tool_cohortmanager', $DB->get_field('cohort', 'component', ['id' => $cohort1->id]));
         $this->assertEquals('', $DB->get_field('cohort', 'component', ['id' => $cohort2->id]));
 
-        $formdata = ['name' => 'Test2', 'enabled' => 0, 'cohortid' => $cohort1->id, 'description' => 'D', 'conditionjson' => ''];
+        $formdata = ['name' => 'Test2', 'cohortid' => $cohort1->id, 'description' => 'D', 'conditionjson' => ''];
         $rule2 = helper::process_rule_form((object)$formdata);
         $this->assertEquals('tool_cohortmanager', $DB->get_field('cohort', 'component', ['id' => $cohort1->id]));
         $this->assertEquals('', $DB->get_field('cohort', 'component', ['id' => $cohort2->id]));
 
         $formdata = ['id' => $rule1->get('id'), 'name' => 'Test1',
-            'enabled' => 0, 'cohortid' => $cohort2->id, 'description' => 'D', 'conditionjson' => ''];
+                     'cohortid' => $cohort2->id, 'description' => 'D', 'conditionjson' => ''];
         helper::process_rule_form((object)$formdata);
 
         $this->assertEquals('tool_cohortmanager', $DB->get_field('cohort', 'component', ['id' => $cohort1->id]));
         $this->assertEquals('tool_cohortmanager', $DB->get_field('cohort', 'component', ['id' => $cohort2->id]));
 
         $formdata = ['id' => $rule2->get('id'), 'name' => 'Test2',
-            'enabled' => 0, 'cohortid' => $cohort2->id, 'description' => 'D', 'conditionjson' => ''];
+                     'cohortid' => $cohort2->id, 'description' => 'D', 'conditionjson' => ''];
         helper::process_rule_form((object)$formdata);
 
         $this->assertEquals('', $DB->get_field('cohort', 'component', ['id' => $cohort1->id]));
@@ -500,12 +500,13 @@ class helper_test extends advanced_testcase {
         $this->assertEquals(0, $DB->count_records(rule::TABLE));
 
         // Creating rule without conditions.
-        $formdata = ['name' => 'Test', 'enabled' => 1, 'cohortid' => $cohort->id, 'description' => '', 'conditionjson' => ''];
+        $formdata = ['name' => 'Test', 'cohortid' => $cohort->id, 'description' => '', 'conditionjson' => ''];
         $rule = helper::process_rule_form((object)$formdata);
 
         // No conditions yet. Rule should be ok.
         $this->assertFalse($rule->is_broken());
-        $this->assertTrue($rule->is_enabled());
+        // Rules disabled by default.
+        $this->assertFalse($rule->is_enabled());
 
         $this->assertEquals(1, $DB->count_records(rule::TABLE));
         $this->assertCount(0, $rule->get_condition_records());
@@ -525,7 +526,8 @@ class helper_test extends advanced_testcase {
 
         // No conditions yet. Rule should be ok.
         $this->assertFalse($rule->is_broken());
-        $this->assertTrue($rule->is_enabled());
+        // Rules disabled by default.
+        $this->assertFalse($rule->is_enabled());
 
         // Updating the rule with 3 new conditions. Expecting 3 new conditions to be created.
         $formdata = ['id' => $rule->get('id'), 'name' => 'Test', 'enabled' => 1, 'cohortid' => $cohort->id,
@@ -582,7 +584,8 @@ class helper_test extends advanced_testcase {
 
         // Should be unbroken as all broken conditions are gone.
         $this->assertFalse($rule->is_broken());
-        $this->assertTrue($rule->is_enabled());
+        // Rules are disabled by default.
+        $this->assertFalse($rule->is_enabled());
     }
 
     /**

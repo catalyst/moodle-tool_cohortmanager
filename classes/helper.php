@@ -80,6 +80,7 @@ class helper {
     public static function process_rule_form(\stdClass $formdata): rule {
         global $DB;
 
+        $formdata->enabled = 0;
         self::validate_rule_data($formdata);
 
         $ruledata = (object) [
