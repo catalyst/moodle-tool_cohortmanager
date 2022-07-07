@@ -119,6 +119,19 @@ class user_profile_test extends \advanced_testcase {
     }
 
     /**
+     * Test getting config description.
+     */
+    public function test_config_description_for_auth_field() {
+        $instance = $this->get_condition([
+            'profilefield' => 'auth',
+            'auth_operator' => user_profile::TEXT_IS_EQUAL_TO,
+            'auth_value' => 'manual',
+        ]);
+
+        $this->assertSame('Authentication method is equal to Manual accounts', $instance->get_config_description());
+    }
+
+    /**
      * Test setting and getting config data.
      */
     public function test_get_sql_data() {

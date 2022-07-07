@@ -267,10 +267,6 @@ class user_profile extends condition_base {
 
         if (!empty($field) && isset($configdata[$field . '_value'])) {
             $fieldvalue = $configdata[$field . '_value'];
-            if ($field == 'auth') {
-                $authplugins = core_plugin_manager::instance()->get_plugins_of_type('auth');
-                $fieldvalue = $authplugins[$fieldvalue]->displayname;
-            }
         }
 
         return $fieldvalue;
@@ -330,7 +326,13 @@ class user_profile extends condition_base {
         if (in_array($this->get_operator_value(), [self::TEXT_IS_EMPTY, self::TEXT_IS_NOT_EMPTY])) {
             return $this->get_field_text() . ' ' . $this->get_operator_text($datatype);
         } else {
-            return $this->get_field_text() . ' '. $this->get_operator_text($datatype) . ' ' . $this->get_field_value();
+            $fieldvalue = $this->get_field_value();
+            if ($fieldname == 'auth') {
+                $authplugins = core_plugin_manager::instance()->get_plugins_of_type('auth');
+                $fieldvalue = $authplugins[$fieldvalue]->displayname;
+            }
+
+            return $this->get_field_text() . ' '. $this->get_operator_text($datatype) . ' ' . $fieldvalue;
         }
     }
 
