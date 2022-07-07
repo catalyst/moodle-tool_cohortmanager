@@ -51,10 +51,6 @@ class user_profile extends condition_base {
     protected const SUPPORTED_STANDARD_FIELDS = ['auth', 'firstname', 'lastname', 'username', 'email',  'idnumber',
         'city', 'country', 'institution', 'department'];
 
-    /**
-     * A list of supported custom profile fields.
-     */
-    protected const SUPPORTED_CUSTOM_FIELDS = ['text', 'menu'];
 
     /**
      * Condition name.
