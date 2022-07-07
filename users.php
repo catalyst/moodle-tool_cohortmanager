@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Rules manage page.
+ * List of users matching a rule.
  *
  * @package    tool_cohortmanager
  * @author     Dmitrii Metelkin <dmitriim@catalyst-au.net>

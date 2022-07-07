@@ -46,7 +46,7 @@ class renderer extends plugin_renderer_base {
     }
 
     /**
-     * Render rules table.
+     * Render matching users table.
      *
      * @param matchingusers $users
      * @return string
