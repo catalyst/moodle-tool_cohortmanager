@@ -55,6 +55,12 @@ class managerules extends table_sql implements renderable {
     protected $renderer;
 
     /**
+     * Indicate if we have already displayed a warning about broken rules.
+     * @var bool
+     */
+    protected $warningdisplayed = false;
+
+    /**
      * Sets up the table.
      *
      * @param string $uniqueid Unique id of form.
@@ -147,7 +153,11 @@ class managerules extends table_sql implements renderable {
      */
     public function col_broken(rule $rule): string {
         if ($rule->is_broken()) {
-            notification::warning(get_string('brokenruleswarning', 'tool_cohortmanager'));
+            if (!$this->warningdisplayed) {
+                notification::warning(get_string('brokenruleswarning', 'tool_cohortmanager'));
+                $this->warningdisplayed = true;
+            }
+
             return get_string('yes');
         }
 
