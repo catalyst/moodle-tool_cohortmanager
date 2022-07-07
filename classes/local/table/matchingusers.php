@@ -111,8 +111,11 @@ class matchingusers extends table_sql implements renderable {
      * @return string
      */
     public function col_cohort(\stdClass $user): string {
-        $cohortid = $this->rule->get('cohortid');
-        return $this->cohorts[$cohortid]->name;
+        if (!empty($this->cohorts[$this->rule->get('cohortid')])) {
+            return $this->cohorts[$this->rule->get('cohortid')]->name;
+        } else {
+            return '-';
+        }
     }
 
     /**
