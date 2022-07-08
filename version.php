@@ -25,8 +25,8 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'tool_cohortmanager';
-$plugin->release = 2022061006;
-$plugin->version = 2022061006;
+$plugin->release = 2022061007;
+$plugin->version = 2022061007;
 $plugin->requires = 2020061500;
 $plugin->maturity = MATURITY_STABLE;
 $plugin->supported = [39, 401];  // Available as of Moodle 3.9.0 or later.

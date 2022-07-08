@@ -16,6 +16,9 @@
 
 namespace tool_cohortmanager;
 
+use html_writer;
+use moodle_url;
+
 defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
@@ -59,6 +62,9 @@ class rule_form extends \moodleform {
         );
         $mform->addHelpButton('cohortid', 'cohortid', 'tool_cohortmanager');
         $mform->addRule('cohortid', get_string('required'), 'required');
+
+        $link = html_writer::link(new moodle_url('/cohort/index.php'), get_string('managecohorts', 'tool_cohortmanager'));
+        $mform->addElement('static', '', '', $link);
 
         // Hidden text field for conditions JSON.
         $mform->addElement('hidden', 'conditionjson', '', ['id' => 'id_conditionjson']);

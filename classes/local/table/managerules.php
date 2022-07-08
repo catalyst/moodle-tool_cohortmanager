@@ -76,6 +76,7 @@ class managerules extends table_sql implements renderable {
             'cohort',
             'users',
             'broken',
+            'conditions',
             'manage',
         ]);
 
@@ -85,6 +86,7 @@ class managerules extends table_sql implements renderable {
             get_string('cohort', 'cohort'),
             get_string('matchingusers', 'tool_cohortmanager'),
             get_string('broken', 'tool_cohortmanager'),
+            get_string('conditions', 'tool_cohortmanager'),
             get_string('actions'),
         ]);
 
@@ -129,10 +131,12 @@ class managerules extends table_sql implements renderable {
      */
     public function col_cohort(rule $rule): string {
         if (!empty($this->cohorts[$rule->get('cohortid')])) {
-            return $this->cohorts[$rule->get('cohortid')]->name;
+            $name = $this->cohorts[$rule->get('cohortid')]->name;
         } else {
-            return '-';
+            $name = '-';
         }
+
+        return  html_writer::link(new moodle_url('/cohort/index.php'), $name);
     }
 
     /**
@@ -163,6 +167,16 @@ class managerules extends table_sql implements renderable {
         }
 
         return get_string('no');
+    }
+
+    /**
+     * Generate content for conditions column.
+     *
+     * @param rule $rule rule object
+     * @return string
+     */
+    public function col_conditions(rule $rule): string {
+        return count($rule->get_condition_records());
     }
 
     /**
