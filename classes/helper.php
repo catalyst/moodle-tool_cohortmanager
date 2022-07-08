@@ -50,6 +50,11 @@ class helper {
     const COHORT_COMPONENT = 'tool_cohortmanager';
 
     /**
+     * A size of chunk of users to process if processing in chunks.
+     */
+    const USERS_PROCESSING_CHUNK_SIZE = 10000;
+
+    /**
      * Get a list of all conditions.
      *
      * @return condition_base[]
@@ -567,7 +572,7 @@ class helper {
             }
         } else {
             $timeadded = time();
-            foreach (array_chunk($userstoadd, 10000) as $users) {
+            foreach (array_chunk($userstoadd, self::USERS_PROCESSING_CHUNK_SIZE) as $users) {
                 $records = [];
                 foreach ($users as $user) {
                     $record = new \stdClass();
@@ -579,7 +584,7 @@ class helper {
                 $DB->insert_records('cohort_members', $records);
             }
 
-            foreach (array_chunk($userstodelete, 10000) as $users) {
+            foreach (array_chunk($userstodelete, self::USERS_PROCESSING_CHUNK_SIZE) as $users) {
                 $userids = array_column($users, 'userid');
                 list($insql, $inparams) = $DB->get_in_or_equal($userids);
                 $sql = "userid $insql";
