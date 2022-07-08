@@ -105,9 +105,11 @@ class helper_test extends advanced_testcase {
         $this->resetAfterTest();
         $this->assertEquals(0, $DB->count_records(rule::TABLE));
 
-        $cohort = $this->getDataGenerator()->create_cohort();
+        $cohort1 = $this->getDataGenerator()->create_cohort();
+        $cohort2 = $this->getDataGenerator()->create_cohort();
+        $cohort3 = $this->getDataGenerator()->create_cohort();
 
-        $formdata = ['name' => 'Test', 'cohortid' => $cohort->id, 'description' => '', 'conditionjson' => ''];
+        $formdata = ['name' => 'Test', 'cohortid' => $cohort1->id, 'description' => '', 'conditionjson' => ''];
 
         $rule = helper::process_rule_form((object)$formdata);
         $this->assertEquals(1, $DB->count_records(rule::TABLE));
@@ -118,7 +120,7 @@ class helper_test extends advanced_testcase {
             $this->assertEquals($value, $rule->get($field));
         }
 
-        $formdata = ['name' => 'Test', 'cohortid' => $cohort->id, 'description' => '', 'conditionjson' => ''];
+        $formdata = ['name' => 'Test', 'cohortid' => $cohort2->id, 'description' => '', 'conditionjson' => ''];
         $rule = helper::process_rule_form((object)$formdata);
         $this->assertEquals(2, $DB->count_records(rule::TABLE));
 
@@ -129,7 +131,7 @@ class helper_test extends advanced_testcase {
         }
 
         $cohort = $this->getDataGenerator()->create_cohort();
-        $formdata = ['name' => 'Test1', 'cohortid' => $cohort->id, 'description' => '', 'conditionjson' => ''];
+        $formdata = ['name' => 'Test1', 'cohortid' => $cohort3->id, 'description' => '', 'conditionjson' => ''];
         $rule = helper::process_rule_form((object)$formdata);
         $this->assertEquals(3, $DB->count_records(rule::TABLE));
 
@@ -195,6 +197,47 @@ class helper_test extends advanced_testcase {
         $this->expectExceptionMessage('Invalid rule data. Cohort is invalid: ' . $cohort->id);
 
         $formdata = ['name' => 'Test', 'cohortid' => $cohort->id, 'description' => '', 'conditionjson' => ''];
+        helper::process_rule_form((object)$formdata);
+    }
+
+    /**
+     * Test trying to submit form data and sending a cohort taken by other rule.
+     */
+    public function test_process_rule_form_with_cohort_managed_by_another_rule() {
+        global $DB;
+
+        $this->resetAfterTest();
+
+        $cohort = $this->getDataGenerator()->create_cohort(['component' => 'tool_cohortmanager']);
+        $this->expectException(moodle_exception::class);
+        $this->expectExceptionMessage('Cohort ' . $cohort->id . ' is already managed by tool_cohortmanager');
+
+        $formdata = ['name' => 'Test1', 'cohortid' => $cohort->id, 'description' => 'D', 'conditionjson' => ''];
+        helper::process_rule_form((object)$formdata);
+        $this->assertEquals('tool_cohortmanager', $DB->get_field('cohort', 'component', ['id' => $cohort->id]));
+
+        // Trying to make a new rule with a cohort that is already taken. Should throw exception.
+        $formdata = ['name' => 'Test2', 'cohortid' => $cohort->id, 'description' => 'D', 'conditionjson' => ''];
+        helper::process_rule_form((object)$formdata);
+    }
+
+    /**
+     * Test trying to submit form data and not updating the cohort.
+     */
+    public function test_process_rule_form_update_rule_form_keeping_cohort() {
+        global $DB;
+
+        $this->resetAfterTest();
+
+        $cohort = $this->getDataGenerator()->create_cohort();
+
+        $formdata = ['name' => 'Test1', 'cohortid' => $cohort->id, 'description' => 'D', 'conditionjson' => ''];
+        $rule = helper::process_rule_form((object)$formdata);
+        $this->assertEquals('tool_cohortmanager', $DB->get_field('cohort', 'component', ['id' => $cohort->id]));
+
+        // Update the rule, changing the name. Should work as cohort is the same.
+        $formdata = ['id' => $rule->get('id'), 'name' => 'Test1',
+                     'cohortid' => $cohort->id, 'description' => 'D', 'conditionjson' => ''];
         helper::process_rule_form((object)$formdata);
     }
 
@@ -330,33 +373,41 @@ class helper_test extends advanced_testcase {
         $this->resetAfterTest();
         $cohort1 = $this->getDataGenerator()->create_cohort();
         $cohort2 = $this->getDataGenerator()->create_cohort();
+        $cohort3 = $this->getDataGenerator()->create_cohort();
 
         $this->assertEquals('', $DB->get_field('cohort', 'component', ['id' => $cohort1->id]));
         $this->assertEquals('', $DB->get_field('cohort', 'component', ['id' => $cohort2->id]));
+        $this->assertEquals('', $DB->get_field('cohort', 'component', ['id' => $cohort3->id]));
 
+        // Rule 1 has cohort 1.
         $formdata = ['name' => 'Test1', 'cohortid' => $cohort1->id, 'description' => 'D', 'conditionjson' => ''];
         $rule1 = helper::process_rule_form((object)$formdata);
         $this->assertEquals('tool_cohortmanager', $DB->get_field('cohort', 'component', ['id' => $cohort1->id]));
         $this->assertEquals('', $DB->get_field('cohort', 'component', ['id' => $cohort2->id]));
+        $this->assertEquals('', $DB->get_field('cohort', 'component', ['id' => $cohort3->id]));
 
-        $formdata = ['name' => 'Test2', 'cohortid' => $cohort1->id, 'description' => 'D', 'conditionjson' => ''];
+        // Rule 2 has cohort 2.
+        $formdata = ['name' => 'Test2', 'cohortid' => $cohort2->id, 'description' => 'D', 'conditionjson' => ''];
         $rule2 = helper::process_rule_form((object)$formdata);
         $this->assertEquals('tool_cohortmanager', $DB->get_field('cohort', 'component', ['id' => $cohort1->id]));
-        $this->assertEquals('', $DB->get_field('cohort', 'component', ['id' => $cohort2->id]));
-
-        $formdata = ['id' => $rule1->get('id'), 'name' => 'Test1',
-                     'cohortid' => $cohort2->id, 'description' => 'D', 'conditionjson' => ''];
-        helper::process_rule_form((object)$formdata);
-
-        $this->assertEquals('tool_cohortmanager', $DB->get_field('cohort', 'component', ['id' => $cohort1->id]));
         $this->assertEquals('tool_cohortmanager', $DB->get_field('cohort', 'component', ['id' => $cohort2->id]));
+        $this->assertEquals('', $DB->get_field('cohort', 'component', ['id' => $cohort3->id]));
 
-        $formdata = ['id' => $rule2->get('id'), 'name' => 'Test2',
-                     'cohortid' => $cohort2->id, 'description' => 'D', 'conditionjson' => ''];
+        // Rule 1 has cohort 3. Cohort 1 is free.
+        $formdata = ['id' => $rule1->get('id'), 'name' => 'Test1',
+                     'cohortid' => $cohort3->id, 'description' => 'D', 'conditionjson' => ''];
         helper::process_rule_form((object)$formdata);
-
         $this->assertEquals('', $DB->get_field('cohort', 'component', ['id' => $cohort1->id]));
         $this->assertEquals('tool_cohortmanager', $DB->get_field('cohort', 'component', ['id' => $cohort2->id]));
+        $this->assertEquals('tool_cohortmanager', $DB->get_field('cohort', 'component', ['id' => $cohort3->id]));
+
+        // Rule 2 has cohort 1. Cohort 2 is free.
+        $formdata = ['id' => $rule2->get('id'), 'name' => 'Test2',
+                     'cohortid' => $cohort1->id, 'description' => 'D', 'conditionjson' => ''];
+        helper::process_rule_form((object)$formdata);
+        $this->assertEquals('tool_cohortmanager', $DB->get_field('cohort', 'component', ['id' => $cohort1->id]));
+        $this->assertEquals('', $DB->get_field('cohort', 'component', ['id' => $cohort2->id]));
+        $this->assertEquals('tool_cohortmanager', $DB->get_field('cohort', 'component', ['id' => $cohort3->id]));
     }
 
     /**
@@ -394,25 +445,27 @@ class helper_test extends advanced_testcase {
 
         $this->resetAfterTest();
 
-        $cohort = $this->getDataGenerator()->create_cohort();
-        $this->assertEquals('', $DB->get_field('cohort', 'component', ['id' => $cohort->id]));
+        $cohort1 = $this->getDataGenerator()->create_cohort();
+        $cohort2 = $this->getDataGenerator()->create_cohort();
+        $this->assertEquals('', $DB->get_field('cohort', 'component', ['id' => $cohort1->id]));
+        $this->assertEquals('', $DB->get_field('cohort', 'component', ['id' => $cohort2->id]));
 
-        $rule1 = new rule(0, (object)['name' => 'Test rule', 'cohortid' => $cohort->id]);
+        $rule1 = new rule(0, (object)['name' => 'Test rule', 'cohortid' => $cohort1->id]);
         $rule1->save();
-        helper::manage_cohort($cohort->id);
+        helper::manage_cohort($cohort1->id);
 
-        $this->assertEquals('tool_cohortmanager', $DB->get_field('cohort', 'component', ['id' => $cohort->id]));
+        $this->assertEquals('tool_cohortmanager', $DB->get_field('cohort', 'component', ['id' => $cohort1->id]));
 
-        $rule2 = new rule(0, (object)['name' => 'Test rule 2', 'cohortid' => $cohort->id]);
+        $rule2 = new rule(0, (object)['name' => 'Test rule 2', 'cohortid' => $cohort2->id]);
         $rule2->save();
-        helper::manage_cohort($cohort->id);
-        $this->assertEquals('tool_cohortmanager', $DB->get_field('cohort', 'component', ['id' => $cohort->id]));
+        helper::manage_cohort($cohort2->id);
+        $this->assertEquals('tool_cohortmanager', $DB->get_field('cohort', 'component', ['id' => $cohort1->id]));
 
         helper::delete_rule($rule1);
-        $this->assertEquals('tool_cohortmanager', $DB->get_field('cohort', 'component', ['id' => $cohort->id]));
+        $this->assertEquals('tool_cohortmanager', $DB->get_field('cohort', 'component', ['id' => $cohort2->id]));
 
         helper::delete_rule($rule2);
-        $this->assertEquals('', $DB->get_field('cohort', 'component', ['id' => $cohort->id]));
+        $this->assertEquals('', $DB->get_field('cohort', 'component', ['id' => $cohort2->id]));
     }
 
     /**

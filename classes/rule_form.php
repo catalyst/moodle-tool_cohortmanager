@@ -84,12 +84,22 @@ class rule_form extends \moodleform {
 
     /**
      * Get a list of all cohorts in the system.
+     *
      * @return array
      */
     protected function get_cohort_options(): array {
         $options = ['' => get_string('choosedots')];
 
-        foreach (helper::get_available_cohorts() as $cohort) {
+        // Retrieve only available cohorts to display in the select.
+        foreach (helper::get_available_cohorts(true) as $cohort) {
+            $options[$cohort->id] = $cohort->name;
+        }
+
+        // We need to re-add the cohort for this rule since it
+        // won't be in available_cohorts (because it is in use
+        // by the rule we are currently editing).
+        if (isset($this->_customdata['defaultcohort'])) {
+            $cohort = $this->_customdata['defaultcohort'];
             $options[$cohort->id] = $cohort->name;
         }
 
