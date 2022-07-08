@@ -109,7 +109,8 @@ class helper_test extends advanced_testcase {
         $cohort2 = $this->getDataGenerator()->create_cohort();
         $cohort3 = $this->getDataGenerator()->create_cohort();
 
-        $formdata = ['name' => 'Test', 'cohortid' => $cohort1->id, 'description' => '', 'conditionjson' => ''];
+        $formdata = ['name' => 'Test', 'cohortid' => $cohort1->id, 'description' => '',
+            'conditionjson' => '', 'processinchunks' => 1];
 
         $rule = helper::process_rule_form((object)$formdata);
         $this->assertEquals(1, $DB->count_records(rule::TABLE));
@@ -120,7 +121,8 @@ class helper_test extends advanced_testcase {
             $this->assertEquals($value, $rule->get($field));
         }
 
-        $formdata = ['name' => 'Test', 'cohortid' => $cohort2->id, 'description' => '', 'conditionjson' => ''];
+        $formdata = ['name' => 'Test', 'cohortid' => $cohort2->id, 'description' => '',
+            'conditionjson' => '', 'processinchunks' => 1];
         $rule = helper::process_rule_form((object)$formdata);
         $this->assertEquals(2, $DB->count_records(rule::TABLE));
 
@@ -131,7 +133,8 @@ class helper_test extends advanced_testcase {
         }
 
         $cohort = $this->getDataGenerator()->create_cohort();
-        $formdata = ['name' => 'Test1', 'cohortid' => $cohort3->id, 'description' => '', 'conditionjson' => ''];
+        $formdata = ['name' => 'Test1', 'cohortid' => $cohort3->id, 'description' => '',
+            'conditionjson' => '', 'processinchunks' => 1];
         $rule = helper::process_rule_form((object)$formdata);
         $this->assertEquals(3, $DB->count_records(rule::TABLE));
 
@@ -164,7 +167,7 @@ class helper_test extends advanced_testcase {
 
         $cohort = $this->getDataGenerator()->create_cohort();
         $formdata = ['id' => $rule->get('id'), 'name' => 'Test1', 'cohortid' => $cohort->id,
-            'description' => 'D', 'conditionjson' => ''];
+            'description' => 'D', 'conditionjson' => '', 'processinchunks' => 1];
         $rule = helper::process_rule_form((object)$formdata);
         $this->assertEquals(1, $DB->count_records(rule::TABLE));
 
@@ -182,7 +185,7 @@ class helper_test extends advanced_testcase {
         $this->expectException(moodle_exception::class);
         $this->expectExceptionMessage('Invalid rule data. Cohort is invalid: 999');
 
-        $formdata = ['name' => 'Test', 'cohortid' => 999, 'description' => '', 'conditionjson' => ''];
+        $formdata = ['name' => 'Test', 'cohortid' => 999, 'description' => '', 'conditionjson' => '', 'processinchunks' => 1];
         helper::process_rule_form((object)$formdata);
     }
 
@@ -196,7 +199,8 @@ class helper_test extends advanced_testcase {
         $this->expectException(moodle_exception::class);
         $this->expectExceptionMessage('Invalid rule data. Cohort is invalid: ' . $cohort->id);
 
-        $formdata = ['name' => 'Test', 'cohortid' => $cohort->id, 'description' => '', 'conditionjson' => ''];
+        $formdata = ['name' => 'Test', 'cohortid' => $cohort->id, 'description' => '',
+            'conditionjson' => '', 'processinchunks' => 1];
         helper::process_rule_form((object)$formdata);
     }
 
@@ -212,12 +216,14 @@ class helper_test extends advanced_testcase {
         $this->expectException(moodle_exception::class);
         $this->expectExceptionMessage('Cohort ' . $cohort->id . ' is already managed by tool_cohortmanager');
 
-        $formdata = ['name' => 'Test1', 'cohortid' => $cohort->id, 'description' => 'D', 'conditionjson' => ''];
+        $formdata = ['name' => 'Test1', 'cohortid' => $cohort->id, 'description' => 'D', 'conditionjson' => '',
+            'processinchunks' => 1];
         helper::process_rule_form((object)$formdata);
         $this->assertEquals('tool_cohortmanager', $DB->get_field('cohort', 'component', ['id' => $cohort->id]));
 
         // Trying to make a new rule with a cohort that is already taken. Should throw exception.
-        $formdata = ['name' => 'Test2', 'cohortid' => $cohort->id, 'description' => 'D', 'conditionjson' => ''];
+        $formdata = ['name' => 'Test2', 'cohortid' => $cohort->id, 'description' => 'D',
+            'conditionjson' => '', 'processinchunks' => 1];
         helper::process_rule_form((object)$formdata);
     }
 
@@ -231,13 +237,14 @@ class helper_test extends advanced_testcase {
 
         $cohort = $this->getDataGenerator()->create_cohort();
 
-        $formdata = ['name' => 'Test1', 'cohortid' => $cohort->id, 'description' => 'D', 'conditionjson' => ''];
+        $formdata = ['name' => 'Test1', 'cohortid' => $cohort->id, 'description' => 'D',
+            'conditionjson' => '', 'processinchunks' => 1];
         $rule = helper::process_rule_form((object)$formdata);
         $this->assertEquals('tool_cohortmanager', $DB->get_field('cohort', 'component', ['id' => $cohort->id]));
 
         // Update the rule, changing the name. Should work as cohort is the same.
         $formdata = ['id' => $rule->get('id'), 'name' => 'Test1',
-                     'cohortid' => $cohort->id, 'description' => 'D', 'conditionjson' => ''];
+                     'cohortid' => $cohort->id, 'description' => 'D', 'conditionjson' => '', 'processinchunks' => 1];
         helper::process_rule_form((object)$formdata);
     }
 
@@ -251,7 +258,7 @@ class helper_test extends advanced_testcase {
         $this->expectException(moodle_exception::class);
         $this->expectExceptionMessage('Invalid rule data. Missing condition data.');
 
-        $formdata = ['name' => 'Test', 'cohortid' => $cohort->id, 'description' => ''];
+        $formdata = ['name' => 'Test', 'cohortid' => $cohort->id, 'description' => '', 'processinchunks' => 1];
         helper::process_rule_form((object)$formdata);
     }
 
@@ -359,7 +366,8 @@ class helper_test extends advanced_testcase {
         $cohort = $this->getDataGenerator()->create_cohort();
         $this->assertEquals('', $DB->get_field('cohort', 'component', ['id' => $cohort->id]));
 
-        $formdata = ['name' => 'Test1', 'cohortid' => $cohort->id, 'description' => 'D', 'conditionjson' => ''];
+        $formdata = ['name' => 'Test1', 'cohortid' => $cohort->id, 'description' => 'D',
+            'conditionjson' => '', 'processinchunks' => 1];
         helper::process_rule_form((object)$formdata);
         $this->assertEquals('tool_cohortmanager', $DB->get_field('cohort', 'component', ['id' => $cohort->id]));
     }
@@ -380,14 +388,16 @@ class helper_test extends advanced_testcase {
         $this->assertEquals('', $DB->get_field('cohort', 'component', ['id' => $cohort3->id]));
 
         // Rule 1 has cohort 1.
-        $formdata = ['name' => 'Test1', 'cohortid' => $cohort1->id, 'description' => 'D', 'conditionjson' => ''];
+        $formdata = ['name' => 'Test1', 'cohortid' => $cohort1->id, 'description' => 'D', 'conditionjson' => '',
+            'processinchunks' => 1];
         $rule1 = helper::process_rule_form((object)$formdata);
         $this->assertEquals('tool_cohortmanager', $DB->get_field('cohort', 'component', ['id' => $cohort1->id]));
         $this->assertEquals('', $DB->get_field('cohort', 'component', ['id' => $cohort2->id]));
         $this->assertEquals('', $DB->get_field('cohort', 'component', ['id' => $cohort3->id]));
 
         // Rule 2 has cohort 2.
-        $formdata = ['name' => 'Test2', 'cohortid' => $cohort2->id, 'description' => 'D', 'conditionjson' => ''];
+        $formdata = ['name' => 'Test2', 'cohortid' => $cohort2->id, 'description' => 'D', 'conditionjson' => '',
+            'processinchunks' => 1];
         $rule2 = helper::process_rule_form((object)$formdata);
         $this->assertEquals('tool_cohortmanager', $DB->get_field('cohort', 'component', ['id' => $cohort1->id]));
         $this->assertEquals('tool_cohortmanager', $DB->get_field('cohort', 'component', ['id' => $cohort2->id]));
@@ -395,7 +405,7 @@ class helper_test extends advanced_testcase {
 
         // Rule 1 has cohort 3. Cohort 1 is free.
         $formdata = ['id' => $rule1->get('id'), 'name' => 'Test1',
-                     'cohortid' => $cohort3->id, 'description' => 'D', 'conditionjson' => ''];
+                     'cohortid' => $cohort3->id, 'description' => 'D', 'conditionjson' => '', 'processinchunks' => 1];
         helper::process_rule_form((object)$formdata);
         $this->assertEquals('', $DB->get_field('cohort', 'component', ['id' => $cohort1->id]));
         $this->assertEquals('tool_cohortmanager', $DB->get_field('cohort', 'component', ['id' => $cohort2->id]));
@@ -403,7 +413,7 @@ class helper_test extends advanced_testcase {
 
         // Rule 2 has cohort 1. Cohort 2 is free.
         $formdata = ['id' => $rule2->get('id'), 'name' => 'Test2',
-                     'cohortid' => $cohort1->id, 'description' => 'D', 'conditionjson' => ''];
+                     'cohortid' => $cohort1->id, 'description' => 'D', 'conditionjson' => '', 'processinchunks' => 1];
         helper::process_rule_form((object)$formdata);
         $this->assertEquals('tool_cohortmanager', $DB->get_field('cohort', 'component', ['id' => $cohort1->id]));
         $this->assertEquals('', $DB->get_field('cohort', 'component', ['id' => $cohort2->id]));
@@ -498,6 +508,7 @@ class helper_test extends advanced_testcase {
             'broken' => 0,
             'cohortid' => 0,
             'description' => 'Test description',
+            'processinchunks' => 0,
             'id' => 0,
             'timecreated' => 0,
             'timemodified' => 0,
@@ -536,6 +547,7 @@ class helper_test extends advanced_testcase {
             'usermodified' => 0,
             'conditionjson' => json_encode($conditions),
             'broken' => 0,
+            'processinchunks' => 0,
         ];
 
         $this->assertEquals($expected, helper::build_rule_data_for_form($rule));
@@ -553,7 +565,8 @@ class helper_test extends advanced_testcase {
         $this->assertEquals(0, $DB->count_records(rule::TABLE));
 
         // Creating rule without conditions.
-        $formdata = ['name' => 'Test', 'cohortid' => $cohort->id, 'description' => '', 'conditionjson' => ''];
+        $formdata = ['name' => 'Test', 'cohortid' => $cohort->id, 'description' => '',
+            'conditionjson' => '', 'processinchunks' => 1];
         $rule = helper::process_rule_form((object)$formdata);
 
         // No conditions yet. Rule should be ok.
@@ -572,7 +585,7 @@ class helper_test extends advanced_testcase {
         ]);
 
         $formdata = ['id' => $rule->get('id'), 'name' => 'Test', 'enabled' => 1, 'cohortid' => $cohort->id,
-            'description' => '', 'conditionjson' => $conditionjson];
+            'description' => '', 'conditionjson' => $conditionjson, 'processinchunks' => 1];
         $rule = helper::process_rule_form((object)$formdata);
         $this->assertEquals(1, $DB->count_records(rule::TABLE));
         $this->assertCount(0, $rule->get_condition_records());
@@ -584,7 +597,7 @@ class helper_test extends advanced_testcase {
 
         // Updating the rule with 3 new conditions. Expecting 3 new conditions to be created.
         $formdata = ['id' => $rule->get('id'), 'name' => 'Test', 'enabled' => 1, 'cohortid' => $cohort->id,
-            'description' => '', 'conditionjson' => $conditionjson, 'isconditionschanged' => true];
+            'description' => '', 'conditionjson' => $conditionjson, 'isconditionschanged' => true, 'processinchunks' => 1];
         $rule = helper::process_rule_form((object)$formdata);
         $this->assertEquals(1, $DB->count_records(rule::TABLE));
         $this->assertCount(3, $rule->get_condition_records());
@@ -617,7 +630,7 @@ class helper_test extends advanced_testcase {
         $conditionjson = json_encode($conditionjson);
 
         $formdata = ['id' => $rule->get('id'), 'name' => 'Test', 'enabled' => 1, 'cohortid' => $cohort->id,
-            'description' => '', 'conditionjson' => $conditionjson, 'isconditionschanged' => true];
+            'description' => '', 'conditionjson' => $conditionjson, 'isconditionschanged' => true, 'processinchunks' => 1];
         $rule = helper::process_rule_form((object)$formdata);
         $this->assertEquals(1, $DB->count_records(rule::TABLE));
         $this->assertCount(3, $rule->get_condition_records());
@@ -630,7 +643,7 @@ class helper_test extends advanced_testcase {
         $this->assertTrue(condition::record_exists_select('classname = ? AND ruleid = ?', ['class4', $rule->get('id')]));
 
         $formdata = ['id' => $rule->get('id'), 'name' => 'Test', 'enabled' => 1, 'cohortid' => $cohort->id,
-            'description' => '', 'conditionjson' => '', 'isconditionschanged' => true];
+            'description' => '', 'conditionjson' => '', 'isconditionschanged' => true, 'processinchunks' => 1];
         $rule = helper::process_rule_form((object)$formdata);
         $this->assertEquals(1, $DB->count_records(rule::TABLE));
         $this->assertCount(0, $rule->get_condition_records());

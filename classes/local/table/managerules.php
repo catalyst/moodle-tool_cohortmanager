@@ -75,6 +75,7 @@ class managerules extends table_sql implements renderable {
             'description',
             'cohort',
             'users',
+            'processinchunks',
             'broken',
             'conditions',
             'manage',
@@ -85,6 +86,7 @@ class managerules extends table_sql implements renderable {
             get_string('description'),
             get_string('cohort', 'cohort'),
             get_string('matchingusers', 'tool_cohortmanager'),
+            get_string('processinchunks', 'tool_cohortmanager'),
             get_string('broken', 'tool_cohortmanager'),
             get_string('conditions', 'tool_cohortmanager'),
             get_string('actions'),
@@ -177,6 +179,16 @@ class managerules extends table_sql implements renderable {
      */
     public function col_conditions(rule $rule): string {
         return count($rule->get_condition_records());
+    }
+
+    /**
+     * Generate content for processinchunks column.
+     *
+     * @param rule $rule rule object
+     * @return string
+     */
+    public function col_processinchunks(rule $rule): string {
+        return $rule->should_process_in_chunks() ? get_string('yes') : get_string('no');
     }
 
     /**

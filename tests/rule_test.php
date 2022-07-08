@@ -57,6 +57,19 @@ class rule_test extends \advanced_testcase {
     }
 
     /**
+     * Test should_process_in_chunks.
+     */
+    public function test_should_process_in_chunks() {
+        $this->resetAfterTest();
+
+        $rule = new rule(0, (object)['name' => 'Test rule 1']);
+        $this->assertFalse($rule->should_process_in_chunks());
+
+        $rule = new rule(0, (object)['name' => 'Test rule 2', 'processinchunks' => 1]);
+        $this->assertTrue($rule->should_process_in_chunks());
+    }
+
+    /**
      * Test is_broken when checking conditions.
      */
     public function test_is_broken_check_conditions() {

@@ -73,5 +73,7 @@ $string['privacy:metadata:tool_cohortmanager_cond:ruleid'] = 'ID of the rule nam
 $string['privacy:metadata:tool_cohortmanager_cond:usermodified'] = 'The ID of the user who created or updated a condition';
 $string['profilefield'] = 'Profile field';
 $string['processrulestask'] = 'Process all rules';
+$string['processinchunks'] = 'Process in chunks';
+$string['processinchunks_help'] = 'If this option is enabled, users will be added and removed from cohort in chunks. This will significantly improve processing performance. However, using this option will supress triggering events when users added or removed from cohort.';
 $string['ruledisabledpleasereview'] = 'Newly created or updated rules are disabled by default. Please review the rule below and enable it when ready.';
 $string['usersforrule'] = 'Users match rule "{$a}"';

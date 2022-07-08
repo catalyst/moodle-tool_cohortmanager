@@ -60,6 +60,10 @@ class rule extends persistent {
                 'default' => null,
                 'null' => NULL_ALLOWED,
             ],
+            'processinchunks' => [
+                'type' => PARAM_INT,
+                'default' => 0,
+            ],
         ];
     }
 
@@ -132,6 +136,14 @@ class rule extends persistent {
         }
 
         return $conditions;
+    }
+
+    /**
+     * Check
+     * @return bool
+     */
+    public function should_process_in_chunks(): bool {
+        return (bool) $this->get('processinchunks');
     }
 
     /**

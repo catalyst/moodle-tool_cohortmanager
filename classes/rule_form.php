@@ -85,6 +85,16 @@ class rule_form extends \moodleform {
         $group[] = $mform->createElement('button', 'conditionmodalbutton', get_string('addcondition', 'tool_cohortmanager'));
         $mform->addGroup($group, 'conditiongroup', 'Condition', ' ', false);
 
+        $mform->addElement(
+            'advcheckbox',
+            'processinchunks',
+            get_string('processinchunks', 'tool_cohortmanager'),
+            get_string('enable'),
+            [],
+            [0, 1]
+        );
+        $mform->addHelpButton('processinchunks', 'processinchunks', 'tool_cohortmanager');
+
         $this->add_action_buttons();
     }
 
