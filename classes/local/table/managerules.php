@@ -131,10 +131,12 @@ class managerules extends table_sql implements renderable {
      */
     public function col_cohort(rule $rule): string {
         if (!empty($this->cohorts[$rule->get('cohortid')])) {
-            return $this->cohorts[$rule->get('cohortid')]->name;
+            $name = $this->cohorts[$rule->get('cohortid')]->name;
         } else {
-            return '-';
+            $name = '-';
         }
+
+        return  html_writer::link(new moodle_url('/cohort/index.php'), $name);
     }
 
     /**

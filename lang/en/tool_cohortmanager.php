@@ -59,6 +59,7 @@ $string['includeusersmissingdata'] = 'include users with missing data';
 $string['include_missing_data_help'] = 'Some users may not have a custom field data set yet. This option includes those user in the final result.';
 $string['isnotempty'] = 'is not empty';
 $string['managerules'] = 'Manage dynamic cohort rules';
+$string['managecohorts'] = 'Manage cohorts';
 $string['matchingusers'] = 'Matching users';
 $string['name'] = 'Rule name';
 $string['name_help'] = 'A human readable name of this rule.';
