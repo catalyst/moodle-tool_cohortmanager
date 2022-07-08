@@ -47,7 +47,7 @@ if (!empty($ruleid)) {
         throw new dml_missing_record_exception(null);
     } else {
         $defaultcohort = $DB->get_record('cohort', ['id' => $rule->get('cohortid')]);
-        $url = new moodle_url('/admin/tool/cohortmanager/edit.php', ['ruleid' => $ruleid]);
+        $url = helper::build_rule_edit_url($rule);
         $mform = new rule_form($url->out(), ['defaultcohort' => $defaultcohort ?: null]);
         $mform->set_data(helper::build_rule_data_for_form($rule));
     }
