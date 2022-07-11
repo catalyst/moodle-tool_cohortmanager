@@ -50,6 +50,11 @@ class helper {
     const COHORT_COMPONENT = 'tool_cohortmanager';
 
     /**
+     * A size of chunk of users to process if processing in chunks.
+     */
+    const USERS_PROCESSING_CHUNK_SIZE = 10000;
+
+    /**
      * Get a list of all conditions.
      *
      * @return condition_base[]
@@ -93,6 +98,7 @@ class helper {
             'enabled' => $formdata->enabled,
             'cohortid' => $formdata->cohortid,
             'description' => $formdata->description,
+            'processinchunks' => $formdata->processinchunks,
         ];
 
         $oldcohortid = 0;
@@ -556,12 +562,34 @@ class helper {
         $userstoadd = array_diff_key($users, $cohortmembers);
         $userstodelete = array_diff_key($cohortmembers, $users);
 
-        foreach ($userstoadd as $user) {
-            cohort_add_member($rule->get('cohortid'), $user->id);
-        }
+        if (!$rule->should_process_in_chunks()) {
+            foreach ($userstoadd as $user) {
+                cohort_add_member($rule->get('cohortid'), $user->id);
+            }
 
-        foreach ($userstodelete as $user) {
-            cohort_remove_member($rule->get('cohortid'), $user->userid);
+            foreach ($userstodelete as $user) {
+                cohort_remove_member($rule->get('cohortid'), $user->userid);
+            }
+        } else {
+            $timeadded = time();
+            foreach (array_chunk($userstoadd, self::USERS_PROCESSING_CHUNK_SIZE) as $users) {
+                $records = [];
+                foreach ($users as $user) {
+                    $record = new \stdClass();
+                    $record->userid = $user->id;
+                    $record->cohortid = $rule->get('cohortid');
+                    $record->timeadded = $timeadded;
+                    $records[] = $record;
+                }
+                $DB->insert_records('cohort_members', $records);
+            }
+
+            foreach (array_chunk($userstodelete, self::USERS_PROCESSING_CHUNK_SIZE) as $users) {
+                $userids = array_column($users, 'userid');
+                list($insql, $inparams) = $DB->get_in_or_equal($userids);
+                $sql = "userid $insql";
+                $DB->delete_records_select('cohort_members', $sql, $inparams);
+            }
         }
     }
 
