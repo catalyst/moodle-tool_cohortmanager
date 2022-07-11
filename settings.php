@@ -27,7 +27,7 @@ defined('MOODLE_INTERNAL') || die();
 
 if ($hassiteconfig) {
 
-    $ADMIN->add('tools', new admin_category(
+    $ADMIN->add('accounts', new admin_category(
         'tool_cohortmanager',
         get_string('pluginname', 'tool_cohortmanager')
     ));
