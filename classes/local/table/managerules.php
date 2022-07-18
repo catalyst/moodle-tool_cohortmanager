@@ -148,8 +148,10 @@ class managerules extends table_sql implements renderable {
      * @return string
      */
     public function col_users(rule $rule): string {
-        $number = number_format(count(helper::get_matching_users($rule)), 0, ',', ' ');
-        return html_writer::link(helper::build_users_url($rule), $number);
+        return $this->renderer->render_from_template('tool_cohortmanager/matching_users', [
+            'ruleid' => $rule->get('id'),
+            'url' => helper::build_users_url($rule)->out(true),
+        ]);
     }
 
     /**

@@ -36,6 +36,8 @@ $editurl = new moodle_url('/admin/tool/cohortmanager/edit.php');
 $rulestable = new managerules('tool_cohortmanager_rules', $manageurl);
 $renderer = helper::get_renderer();
 
+$PAGE->requires->js_call_amd('tool_cohortmanager/manage_rules', 'init');
+
 echo $renderer->header();
 echo $renderer->heading(get_string('managerules', 'tool_cohortmanager'));
 echo $renderer->render_from_template('tool_cohortmanager/addrulebutton', ['url' => $editurl]);
