@@ -63,6 +63,7 @@ class condition_form extends external_api {
 
         // Always in a system context.
         self::validate_context(context_system::instance());
+        require_capability('tool/cohortmanager:managerules', context_system::instance());
 
         $ajaxdata = [];
         if (!empty($params['jsonformdata'])) {

@@ -30,7 +30,15 @@ $functions = [
         'methodname'      => 'submit',
         'description'     => 'Submits condition form',
         'type'            => 'read',
-        'capabilities'    => '',
+        'capabilities'    => 'tool/cohortmanager:managerules',
+        'ajax'            => true,
+    ],
+    'tool_cohortmanager_get_total_matching_users_for_rule' => [
+        'classname'       => 'tool_cohortmanager\external\matching_users',
+        'methodname'      => 'get_total',
+        'description'     => 'Returns a number of matching users for provided rule ',
+        'type'            => 'read',
+        'capabilities'    => 'tool/cohortmanager:managerules',
         'ajax'            => true,
     ],
 ];

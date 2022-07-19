@@ -26,7 +26,6 @@
 defined('MOODLE_INTERNAL') || die();
 
 $capabilities = [
-
     'tool/cohortmanager:managerules' => [
         'captype' => 'write',
         'contextlevel' => CONTEXT_SYSTEM,
