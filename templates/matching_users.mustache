@@ -25,7 +25,21 @@
         "url": "https://example.com//admin/tool/cohortmanager/users.php?ruleid=12"
     }
 }}
-<div class="cohort-manager-matching-users" data-ruleid="{{ruleid}}">
+<div class="cohort-manager-matching-users" id="tool_cohortmanager_ruleid_{{ruleid}}">
     {{> core/loading }}
     <div class="hidden"><a href="{{url}}"></a></div>
 </div>
+{{#js}}
+require(['core/ajax', 'core/notification'], function(Ajax, Notification) {
+    const [loader, linkContainer] = document.getElementById("tool_cohortmanager_ruleid_{{ruleid}}").children;
+    const request = {
+        methodname: 'tool_cohortmanager_get_total_matching_users_for_rule',
+        args: {ruleid: {{ruleid}}}
+    }
+    Ajax.call([request])[0].done(num => {
+        linkContainer.children[0].innerHTML = num;
+        loader.classList.add('hidden');
+        linkContainer.classList.remove('hidden');
+    }).fail(Notification.exception);
+});
+{{/js}}
