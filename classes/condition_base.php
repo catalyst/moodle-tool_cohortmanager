@@ -108,6 +108,23 @@ abstract class condition_base {
     }
 
     /**
+     * Returns a rule record for the given condition.
+     *
+     * @return rule|null
+     */
+    public function get_rule(): ?rule {
+        $rule = null;
+
+        if ($this->get_record()) {
+            if (!$rule = rule::get_record(['id' => $this->get_record()->get('ruleid')])) {
+                $rule = null;
+            }
+        }
+
+        return $rule;
+    }
+
+    /**
      * Gets a list of event classes the condition will be triggered on.
      *
      * @return array
