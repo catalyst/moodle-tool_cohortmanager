@@ -76,7 +76,7 @@ class managerules extends table_sql implements renderable {
             'cohort',
             'users',
             'processinchunks',
-            'broken',
+            'status',
             'conditions',
             'manage',
         ]);
@@ -87,7 +87,7 @@ class managerules extends table_sql implements renderable {
             get_string('cohort', 'cohort'),
             get_string('matchingusers', 'tool_cohortmanager'),
             get_string('processinchunks', 'tool_cohortmanager'),
-            get_string('broken', 'tool_cohortmanager'),
+            get_string('status'),
             get_string('conditions', 'tool_cohortmanager'),
             get_string('actions'),
         ]);
@@ -155,22 +155,22 @@ class managerules extends table_sql implements renderable {
     }
 
     /**
-     * Generate content for broken column.
+     * Generate content for status column.
      *
      * @param rule $rule rule object
      * @return string
      */
-    public function col_broken(rule $rule): string {
+    public function col_status(rule $rule): string {
         if ($rule->is_broken()) {
             if (!$this->warningdisplayed) {
                 notification::warning(get_string('brokenruleswarning', 'tool_cohortmanager'));
                 $this->warningdisplayed = true;
             }
 
-            return get_string('yes');
+            return $this->renderer->pix_icon('i/invalid', get_string('statuserror'));
         }
 
-        return get_string('no');
+        return $this->renderer->pix_icon('i/valid', get_string('ok'));
     }
 
     /**
