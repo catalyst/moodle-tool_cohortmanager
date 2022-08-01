@@ -86,7 +86,7 @@ class condition_form extends external_api {
             'position' => (int)$formdata->position,
             'classname' => $classname,
             'configdata' => json_encode($condition->get_configdata()),
-            'description' => $condition->get_config_description(),
+            'description' => $condition->is_broken() ? $condition->get_broken_description() : $condition->get_config_description(),
             'name' => $condition->get_name(),
         ];
     }

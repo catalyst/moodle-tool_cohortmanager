@@ -117,6 +117,16 @@ abstract class condition_base {
     }
 
     /**
+     * Human readable description of the broken condition.
+     *
+     * @return string
+     */
+    public function get_broken_description(): string {
+        // By default output a raw config data.
+        return $this->get_record()->get('configdata');
+    }
+
+    /**
      * Returns the name of the condition
      *
      * @return string
