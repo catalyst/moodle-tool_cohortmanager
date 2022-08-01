@@ -19,6 +19,7 @@ namespace tool_cohortmanager;
 use advanced_testcase;
 use moodle_url;
 use moodle_exception;
+use tool_cohortmanager\tool_cohortmanager\condition\cohort_membership;
 use tool_cohortmanager\tool_cohortmanager\condition\user_profile;
 use cache;
 
@@ -792,6 +793,47 @@ class helper_test extends advanced_testcase {
         $rule4 = new rule(0, (object)['name' => 'Test rule1 3', 'enabled' => 1]);
         $rule4->save();
         $this->assertFalse($cache->get($key));
+    }
+
+    /**
+     * Very basic test for get matching users to make sure it all works.
+     */
+    public function test_get_matching_users() {
+        $this->resetAfterTest();
+
+        $user1 = $this->getDataGenerator()->create_user(['username' => 'user1username']);
+        $user2 = $this->getDataGenerator()->create_user(['username' => 'user2username']);
+        $user3 = $this->getDataGenerator()->create_user(['username' => 'test']);
+
+        $cohort1 = $this->getDataGenerator()->create_cohort();
+        $cohort2 = $this->getDataGenerator()->create_cohort();
+
+        cohort_add_member($cohort1->id, $user1->id);
+        cohort_add_member($cohort1->id, $user2->id);
+
+        $rule = new rule(0, (object)['name' => 'Test rule 1', 'cohortid' => $cohort2->id]);
+        $rule->save();
+
+        $condition1 = cohort_membership::get_instance(0, (object)['ruleid' => $rule->get('id'), 'position' => 0]);
+        $condition1->set_configdata([
+            'cohort_membership_operator' => cohort_membership::OPERATOR_IS_MEMBER_OF,
+            'cohort_membership_value' => [$cohort1->id],
+        ]);
+        $condition1->get_record()->save();
+
+        $condition2 = user_profile::get_instance(0, (object)['ruleid' => $rule->get('id'), 'position' => 1]);
+        $condition2->set_configdata([
+            'profilefield' => 'username',
+            'username_operator' => user_profile::TEXT_IS_EQUAL_TO,
+            'username_value' => 'user1username',
+        ]);
+        $condition2->get_record()->save();
+
+        $users = helper::get_matching_users($rule);
+
+        $this->assertArrayHasKey($user1->id, $users);
+        $this->assertArrayNotHasKey($user2->id, $users);
+        $this->assertArrayNotHasKey($user3->id, $users);
     }
 
 }
