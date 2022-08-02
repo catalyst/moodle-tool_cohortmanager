@@ -36,6 +36,7 @@ $string['cohortid'] = 'Cohort';
 $string['cohortid_help'] = 'A cohort to manage as part of this rule. Only cohorts that are not managed by other plugins are displayed in this list.';
 $string['conditions'] = 'Conditions';
 $string['conditionformtitle'] = 'Rule condition';
+$string['conditionsformtitle'] = 'Rule conditions';
 $string['conditionchnagesnotapplied'] = 'Condition changes are not applied until you save the rule form';
 $string['condition_cohort_membership'] = 'Cohort membership';
 $string['condition_cohort_membership_description'] = 'A user {$a->operator} {$a->locations}';

@@ -26,11 +26,13 @@
     * none
 
     Context variables required for this template:
-    * url - URL of edit page.
+    * conditions - A list of conditions.
+    * hidecontrols - True if need to hide controls.
 
     Example context (json):
     {
-        "conditions" : "conditions"
+        "conditions" : "conditions",
+        "hidecontrols": "true"
     }
 }}
 
@@ -41,7 +43,9 @@
         <tr>
             <th scope="col">{{# str }} name {{/ str }}</th>
             <th scope="col">{{# str }} description {{/ str }}</th>
-            <th scope="col">{{# str }} actions {{/ str }}</th>
+            {{^hidecontrols}}
+                <th scope="col">{{# str }} actions {{/ str }}</th>
+            {{/hidecontrols}}
         </tr>
         </thead>
         <tbody>
@@ -49,10 +53,12 @@
             <tr>
                 <td>{{{name}}}</td>
                 <td>{{{description}}}</td>
-                <td>
-                    <span class="tool-cohortmanager-condition-edit" data-position="{{position}}">{{# pix }} t/edit, core, {{# str }} edit {{/ str }} {{/ pix }}</span>
-                    <span class="tool-cohortmanager-condition-delete" data-position="{{position}}">{{# pix }} t/delete, core, {{# str }} delete {{/ str }} {{/ pix }}</span>
-                </td>
+                {{^hidecontrols}}
+                    <td>
+                        <span class="tool-cohortmanager-condition-edit" data-position="{{position}}">{{# pix }} t/edit, core, {{# str }} edit {{/ str }} {{/ pix }}</span>
+                        <span class="tool-cohortmanager-condition-delete" data-position="{{position}}">{{# pix }} t/delete, core, {{# str }} delete {{/ str }} {{/ pix }}</span>
+                    </td>
+                {{/hidecontrols}}
             </tr>
         {{/conditions}}
         </tbody>

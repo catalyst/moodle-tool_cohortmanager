@@ -23,12 +23,32 @@
 
 import Ajax from 'core/ajax';
 import Notification from 'core/notification';
+import Templates from 'core/templates';
+import ModalEvents from 'core/modal_events';
+import ModalFactory from 'core/modal_factory';
+import {get_string as getString} from 'core/str';
+
+/**
+ * A list of used selectors.
+ */
+const SELECTORS = {
+    RULE_MATCHING_USERS: 'tool-cohortmanager-matching-users',
+    RULE_CONDITIONS: '.tool-cohortmanager-condition-view',
+};
 
 /**
  * Init of the module.
  */
 export const init = () => {
-    Array.from(document.getElementsByClassName('cohort-manager-matching-users')).forEach((collection) => {
+    loadMatchingUsers();
+    initRuleConditionsModals();
+};
+
+/**
+ * Load matching users for each rule.
+ */
+const loadMatchingUsers = () => {
+    Array.from(document.getElementsByClassName(SELECTORS.RULE_MATCHING_USERS)).forEach((collection) => {
         const ruleid = collection.dataset.ruleid;
         const loader = collection.children[0];
         const link = collection.children[1];
@@ -45,5 +65,43 @@ export const init = () => {
                 Notification.exception(response);
             }
         }]);
+    });
+};
+
+/**
+ * Initialise displaying each rule conditions in a modal.
+ */
+const initRuleConditionsModals = () => {
+    document.querySelectorAll(SELECTORS.RULE_CONDITIONS).forEach(link => {
+        let ruleid = link.dataset.ruleid;
+        link.addEventListener('click', function() {
+            Ajax.call([{
+                methodname: 'tool_cohortmanager_get_conditions',
+                args: {ruleid: ruleid},
+                done: function (conditions) {
+                    Templates.render(
+                        'tool_cohortmanager/conditions',
+                        {'conditions' : conditions, 'hidecontrols': true}
+                    ).then(function(html) {
+                        ModalFactory.create({
+                            type: ModalFactory.types.ALERT,
+                            title: getString('conditionsformtitle', 'tool_cohortmanager'),
+                            body: html,
+                            large: true,
+                        }).then(function (modal) {
+                            modal.getRoot().on(ModalEvents.hidden, function() {
+                                modal.destroy();
+                            });
+                            modal.show();
+                        });
+                    }).fail(function(response) {
+                        Notification.exception(response);
+                    });
+                },
+                fail: function (response) {
+                    Notification.exception(response);
+                }
+            }]);
+        });
     });
 };
