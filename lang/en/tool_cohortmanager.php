@@ -45,6 +45,7 @@ $string['condition_user_profile']  = 'User standard profile field';
 $string['condition_user_custom_profile'] = 'User custom profile field';
 $string['delete_breadcrumb'] = 'Delete rule';
 $string['delete_confirm'] = 'Are you sure you want to delete rule {$a}?';
+$string['delete_confirm_condition'] = 'Are you sure you want to delete this condition?';
 $string['description'] = 'Description';
 $string['description_help'] = 'As short description of this rule';
 $string['edit_breadcrumb'] = 'Edit rule';
