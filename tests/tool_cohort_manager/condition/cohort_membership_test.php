@@ -217,6 +217,7 @@ class cohort_membership_test extends \advanced_testcase {
         ]);
         $this->assertSame(
             get_string('condition_cohort_membership_broken_description', 'tool_cohortmanager')
+            . '<br />'
             . "A user is member of {$cohort1->name} OR {$cohort2->name}",
             $condition->get_broken_description()
         );

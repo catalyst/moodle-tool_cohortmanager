@@ -19,6 +19,7 @@ namespace tool_cohortmanager\tool_cohortmanager\condition;
 use tool_cohortmanager\condition_base;
 use tool_cohortmanager\helper;
 use tool_cohortmanager\sql_data;
+use html_writer;
 
 /**
  * Condition based on cohort membership.
@@ -30,8 +31,19 @@ use tool_cohortmanager\sql_data;
  */
 class cohort_membership extends condition_base {
 
+    /**
+     * A field name in the form.
+     */
     public const FIELD_NAME = 'cohort_membership';
+
+    /**
+     * Operator value when need members of cohort(s).
+     */
     public const OPERATOR_IS_MEMBER_OF = 1;
+
+    /**
+     * Operator value when don't need members of cohort(s).
+     */
     public const OPERATOR_IS_NOT_MEMBER_OF = 2;
 
     /**
@@ -39,7 +51,6 @@ class cohort_membership extends condition_base {
      * @var null|array
      */
     protected $allcohorts = null;
-
 
     /**
      * Condition name.
@@ -55,7 +66,7 @@ class cohort_membership extends condition_base {
      *
      * @return array A list of operators.
      */
-    protected function get_operators() : array {
+    protected function get_operators(): array {
         return [
             self::OPERATOR_IS_MEMBER_OF => get_string('ismemberof', 'tool_cohortmanager'),
             self::OPERATOR_IS_NOT_MEMBER_OF => get_string('isnotmemberof', 'tool_cohortmanager'),
@@ -185,11 +196,13 @@ class cohort_membership extends condition_base {
     public function get_broken_description(): string {
         if ($this->is_using_rule_cohort()) {
             $description = get_string('condition_cohort_membership_broken_description', 'tool_cohortmanager');
+            $description .= html_writer::empty_tag('br');
             $description .= $this->get_config_description();
-            return $description;
         } else {
-            return parent::get_broken_description();
+            $description = parent::get_broken_description();
         }
+
+        return $description;
     }
 
     /**
@@ -212,7 +225,7 @@ class cohort_membership extends condition_base {
                 helper::generate_param_alias()
             );
 
-            // Are we getting  members?
+            // Are we getting members?
             $needmembers = $this->get_operator_value() == self::OPERATOR_IS_MEMBER_OF;
             // Select all users that are members or not members of given cohorts depending on selected operator.
             $join = "LEFT JOIN (SELECT {$innertable}.userid
@@ -261,7 +274,7 @@ class cohort_membership extends condition_base {
     public function is_broken(): bool {
         // Check if configured cohort is still exist.
         foreach ($this->get_configured_cohorts() as $cohortid) {
-            if (!key_exists($cohortid, $this->get_all_cohorts())) {
+            if (!array_key_exists($cohortid, $this->get_all_cohorts())) {
                 return true;
             }
         }

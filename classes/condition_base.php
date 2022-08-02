@@ -113,15 +113,7 @@ abstract class condition_base {
      * @return rule|null
      */
     public function get_rule(): ?rule {
-        $rule = null;
-
-        if ($this->get_record()) {
-            if (!$rule = rule::get_record(['id' => $this->get_record()->get('ruleid')])) {
-                $rule = null;
-            }
-        }
-
-        return $rule;
+        return rule::get_record(['id' => $this->get_record()->get('ruleid')]) ?: null;
     }
 
     /**
@@ -139,7 +131,6 @@ abstract class condition_base {
      * @return string
      */
     public function get_broken_description(): string {
-        // By default output a raw config data.
         return $this->get_record()->get('configdata');
     }
 

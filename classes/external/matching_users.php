@@ -40,7 +40,7 @@ class matching_users extends external_api {
      */
     public static function get_total_parameters(): external_function_parameters {
         return new external_function_parameters([
-            'ruleid' => new external_value(PARAM_INT, 'The condition class being submitted')
+            'ruleid' => new external_value(PARAM_INT, 'The rule ID to get matching users for')
         ]);
     }
 

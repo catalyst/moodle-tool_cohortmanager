@@ -155,7 +155,7 @@ class helper {
             }
         }
 
-        if (!key_exists($formdata->cohortid, self::get_available_cohorts())) {
+        if (!array_key_exists($formdata->cohortid, self::get_available_cohorts())) {
             throw new moodle_exception('Invalid rule data. Cohort is invalid: ' . $formdata->cohortid);
         }
 
