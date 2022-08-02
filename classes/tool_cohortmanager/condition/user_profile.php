@@ -483,7 +483,7 @@ class user_profile extends condition_base {
                 return true;
             }
 
-            return !key_exists($configuredfield, $this->get_fields_info());
+            return !array_key_exists($configuredfield, $this->get_fields_info());
         }
 
         return false;

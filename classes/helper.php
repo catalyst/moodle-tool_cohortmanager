@@ -155,7 +155,7 @@ class helper {
             }
         }
 
-        if (!key_exists($formdata->cohortid, self::get_available_cohorts())) {
+        if (!array_key_exists($formdata->cohortid, self::get_available_cohorts())) {
             throw new moodle_exception('Invalid rule data. Cohort is invalid: ' . $formdata->cohortid);
         }
 
@@ -289,7 +289,7 @@ class helper {
             $description = $condition->get('configdata');
         } else {
             $name = $instance->get_name();
-            $description = $instance->is_broken() ? $condition->get('configdata') : $instance->get_config_description();
+            $description = $instance->is_broken() ? $instance->get_broken_description() : $instance->get_config_description();
         }
 
         $data['other']['name'] = $name;
@@ -413,7 +413,7 @@ class helper {
                 $description = $condition->get('configdata');
             } else {
                 $name = $instance->get_name();
-                $description = $instance->is_broken() ? $condition->get('configdata') : $instance->get_config_description();
+                $description = $instance->is_broken() ? $instance->get_broken_description() : $instance->get_config_description();
             }
 
             $conditions[] = (array)$condition->to_record() +

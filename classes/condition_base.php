@@ -108,12 +108,30 @@ abstract class condition_base {
     }
 
     /**
+     * Returns a rule record for the given condition.
+     *
+     * @return rule|null
+     */
+    public function get_rule(): ?rule {
+        return rule::get_record(['id' => $this->get_record()->get('ruleid')]) ?: null;
+    }
+
+    /**
      * Gets a list of event classes the condition will be triggered on.
      *
      * @return array
      */
     public function get_events(): array {
         return [];
+    }
+
+    /**
+     * Human readable description of the broken condition.
+     *
+     * @return string
+     */
+    public function get_broken_description(): string {
+        return $this->get_record()->get('configdata');
     }
 
     /**
