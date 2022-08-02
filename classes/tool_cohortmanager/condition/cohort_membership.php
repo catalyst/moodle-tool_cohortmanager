@@ -80,6 +80,7 @@ class cohort_membership extends condition_base {
      */
     protected function get_all_cohorts(): array {
         if (is_null($this->allcohorts)) {
+            $this->allcohorts = [];
             foreach (helper::get_available_cohorts() as $cohort) {
                 $this->allcohorts[$cohort->id] = $cohort->name;
             }
