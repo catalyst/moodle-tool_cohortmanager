@@ -80,7 +80,9 @@ class cohort_membership extends condition_base {
      */
     protected function get_all_cohorts(): array {
         if (is_null($this->allcohorts)) {
-            $this->allcohorts = helper::get_available_cohorts();
+            foreach (helper::get_available_cohorts() as $cohort) {
+                $this->allcohorts[$cohort->id] = $cohort->name;
+            }
         }
 
         return $this->allcohorts;
@@ -99,17 +101,11 @@ class cohort_membership extends condition_base {
             $this->get_operators()
         );
 
-        $cohorts = [];
-
-        foreach ($this->get_all_cohorts() as $cohort) {
-            $cohorts[$cohort->id] = $cohort->name;
-        }
-
         $mform->addElement(
             'autocomplete',
             $this->get_cohort_field(),
             get_string('cohort', 'cohort'),
-            $cohorts,
+            $this->get_all_cohorts(),
             ['noselectionstring' => get_string('choosedots'), 'multiple' => true]
         );
 
@@ -177,7 +173,7 @@ class cohort_membership extends condition_base {
         $operator = $this->get_operators()[$this->get_operator_value()];
 
         $cohorts = array_map(function ($cohortid) {
-            return $this->get_all_cohorts()[$cohortid]->name ?? $cohortid;
+            return $this->get_all_cohorts()[$cohortid] ?? $cohortid;
         }, $this->get_configured_cohorts());
 
         $locations = implode(' ' . get_string('or', 'tool_cohortmanager') . ' ', $cohorts);
