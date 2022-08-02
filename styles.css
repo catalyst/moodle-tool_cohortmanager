@@ -1,4 +1,6 @@
 .tool-cohortmanager-condition-edit,
-.tool-cohortmanager-condition-delete {
+.tool-cohortmanager-condition-delete,
+.tool-cohortmanager-condition-view {
     cursor: pointer;
+    color: #0036ae;
 }

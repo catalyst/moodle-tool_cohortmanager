@@ -26,6 +26,7 @@ import Templates from 'core/templates';
 import Fragment from 'core/fragment';
 import ModalEvents from 'core/modal_events';
 import ModalFactory from 'core/modal_factory';
+import Notification from 'core/notification';
 import {get_string as getString} from 'core/str';
 
 /**
@@ -241,12 +242,19 @@ const applyConditionActions = () => {
         // and remove an element of that position from the list of all existing conditions.
         // Then save updated list of conditions to the rule form and render new list on a screen.
         if (element.className == SELECTORS.CONDITION_DELETE_ACTION) {
-            let position = element.dataset.position;
-            let conditions = getConditions()
-                .filter(c => c.position != position)
-                .map((condition, index) => ({...condition, position: index}));
-            saveConditionsToRuleForm(conditions);
-            renderConditions(conditions);
+            Notification.confirm(
+                getString('confirm', 'moodle'),
+                getString('delete_confirm_condition', 'tool_cohortmanager'),
+                getString('yes', 'moodle'),
+                getString('no', 'moodle'),
+                function () {
+                    let position = element.dataset.position;
+                    let conditions = getConditions()
+                        .filter(c => c.position != position)
+                        .map((condition, index) => ({...condition, position: index}));
+                    saveConditionsToRuleForm(conditions);
+                    renderConditions(conditions);
+                });
         }
 
         // On a click to an edit icon for a selected condition, grab condition data from the list of

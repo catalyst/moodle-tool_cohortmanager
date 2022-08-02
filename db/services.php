@@ -41,4 +41,12 @@ $functions = [
         'capabilities'    => 'tool/cohortmanager:managerules',
         'ajax'            => true,
     ],
+    'tool_cohortmanager_get_conditions' => [
+        'classname'       => 'tool_cohortmanager\external\rule_conditions',
+        'methodname'      => 'get_conditions',
+        'description'     => 'Returns a list of conditions for provided rule ',
+        'type'            => 'read',
+        'capabilities'    => 'tool/cohortmanager:managerules',
+        'ajax'            => true,
+    ],
 ];

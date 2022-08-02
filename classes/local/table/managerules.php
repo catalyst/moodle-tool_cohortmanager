@@ -76,8 +76,8 @@ class managerules extends table_sql implements renderable {
             'cohort',
             'users',
             'processinchunks',
-            'status',
             'conditions',
+            'status',
             'manage',
         ]);
 
@@ -87,8 +87,8 @@ class managerules extends table_sql implements renderable {
             get_string('cohort', 'cohort'),
             get_string('matchingusers', 'tool_cohortmanager'),
             get_string('processinchunks', 'tool_cohortmanager'),
-            get_string('status'),
             get_string('conditions', 'tool_cohortmanager'),
+            get_string('status'),
             get_string('actions'),
         ]);
 
@@ -162,15 +162,16 @@ class managerules extends table_sql implements renderable {
      */
     public function col_status(rule $rule): string {
         if ($rule->is_broken()) {
+            $status = $this->renderer->pix_icon('i/invalid', get_string('statuserror'));
             if (!$this->warningdisplayed) {
                 notification::warning(get_string('brokenruleswarning', 'tool_cohortmanager'));
                 $this->warningdisplayed = true;
             }
-
-            return $this->renderer->pix_icon('i/invalid', get_string('statuserror'));
+        } else {
+            $status = $this->renderer->pix_icon('i/valid', get_string('ok'));
         }
 
-        return $this->renderer->pix_icon('i/valid', get_string('ok'));
+        return $status;
     }
 
     /**
@@ -180,7 +181,17 @@ class managerules extends table_sql implements renderable {
      * @return string
      */
     public function col_conditions(rule $rule): string {
-        return count($rule->get_condition_records());
+        $conditions = count($rule->get_condition_records());
+
+        // If there are some conditions, build a link to apply js to display conditions in a modal popup.
+        if ($conditions > 0) {
+            $conditions = html_writer::tag('span', $conditions, [
+                'class' => 'tool-cohortmanager-condition-view',
+                'data-ruleid' => $rule->get('id')
+            ]);
+        }
+
+        return $conditions;
     }
 
     /**
